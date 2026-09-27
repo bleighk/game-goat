@@ -1,0 +1,19 @@
+{
+  "schema_version": 2,
+  "id": "game-goat-pinned-partial-title-and-id",
+  "applied_at": "2026-09-28",
+  "base_run_id": "20260927-155341-72694577",
+  "base_printing_press_version": "4.32.5",
+  "summary": "fix(game-goat): year-pinned partial titles resolve via boundary-continuation hits; ratings/series/similar accept bare RAWG ids",
+  "reason": "PR #2057 Greptile follow-up review: the round-3 year-pin fix made valid year-pinned partial titles fail hard (\"the witcher 3\" --year 2015), and the not-found error's RAWG-id advice was unusable because ratings, series, and similar treated numeric arguments as search titles.",
+  "files": [
+    "internal/cli/ratings.go",
+    "internal/cli/ratings_resolve_test.go"
+  ],
+  "call_sites": [
+    "PATCH(amend-2026-09-28: ratings/series/similar accept a bare RAWG id)",
+    "PATCH(amend-2026-09-28: year-pinned partial titles resolve via a boundary-continuation hit)"
+  ],
+  "validated_outcome": "publish validate passed; TestResolveTitleForMultiSourceYearPinnedPartialTitleResolves and TestResolveTitleForMultiSourceAcceptsRawgID pass",
+  "findings_addressed": ["F2", "F3"]
+}

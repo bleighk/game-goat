@@ -125,10 +125,10 @@ These capabilities aren't available in any other tool for this API.
 
 **ratings · retention · series · similar**
 
-- `game-goat-pp-cli ratings <title>` — RAWG + Metacritic + Steam rating card.
+- `game-goat-pp-cli ratings <title>` — RAWG + Metacritic + Steam rating card (title or bare RAWG id).
 - `game-goat-pp-cli retention <title>` — community beaten/dropped/playing/yet split with an aspirational-trap verdict (needs RAWG_API_KEY).
-- `game-goat-pp-cli series <title>` — franchise play order by release date, anchor included.
-- `game-goat-pp-cli similar <title>` — tiered recommendations: same studio (capped), defining gameplay tag, then shared genres; each row carries `tier` and `reason`.
+- `game-goat-pp-cli series <title>` — franchise play order by release date, anchor included (title or bare RAWG id).
+- `game-goat-pp-cli similar <title>` — tiered recommendations: same studio (capped), defining gameplay tag, then shared genres; each row carries `tier` and `reason` (title or bare RAWG id).
 
 **framework**
 
@@ -165,6 +165,8 @@ game-goat-pp-cli series "zelda" --json
 ```bash
 game-goat-pp-cli ratings "resident evil 4" --year 2023 --json
 ```
+
+A pinned `--year` is a hard constraint on the title too: if no game with that exact title was released in that year, the command reports not-found (drop `--year` or pass a RAWG id) rather than resolving a different game from the same year.
 
 ### Will people actually finish it?
 

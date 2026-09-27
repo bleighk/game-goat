@@ -117,7 +117,8 @@ func newSeriesCmd(flags *rootFlags) *cobra.Command {
 by release date with year, rating, and playtime. The anchor game itself is
 included. An empty game-series falls back to parent-games (remakes and
 editions). Titles shared by remakes are flagged as ambiguous; pin with
---year.`,
+--year. A bare-numeric argument is a RAWG id, matching retention and games
+get.`,
 		Example: strings.Trim(`
   game-goat-pp-cli series "Yakuza"
   game-goat-pp-cli series "God of War" --limit 8 --json
@@ -228,10 +229,14 @@ editions). Titles shared by remakes are flagged as ambiguous; pin with
 					Playtime: g.Playtime,
 				})
 			}
+			resolvedBy := "title"
+			if _, ok := parseGameID(title); ok {
+				resolvedBy = "id"
+			}
 			meta := seriesMeta{
 				Source:     "live",
 				Title:      title,
-				ResolvedBy: "title",
+				ResolvedBy: resolvedBy,
 				Via:        via,
 				Anchor:     match.Name,
 				Count:      len(entries),

@@ -406,7 +406,8 @@ func newSimilarCmd(flags *rootFlags) *cobra.Command {
 		Use:   "similar <title>",
 		Short: "Games like <title>: same studio, defining gameplay tag, then shared genres",
 		Long: `Find games like one you name. The seed title is resolved against RAWG
-(remake collisions are flagged ambiguous; pin with --year), then results are
+(remake collisions are flagged ambiguous; pin with --year; a bare-numeric
+argument is a RAWG id, matching retention and games get), then results are
 filled in tiers:
 
   studio     other games by the seed's developer (at most half the list;

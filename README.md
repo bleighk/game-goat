@@ -125,6 +125,8 @@ game-goat-pp-cli games search "hollow knight" --json
 
 game-goat-pp-cli ratings "hollow knight" --json
 
+game-goat-pp-cli ratings 3498 --json
+
 game-goat-pp-cli similar "hollow knight" --json
 
 ```
@@ -154,6 +156,8 @@ game-goat-pp-cli series "zelda" --json
 ```bash
 game-goat-pp-cli ratings "resident evil 4" --year 2023 --json
 ```
+
+A pinned `--year` is a hard constraint on the title too: if no game with that exact title was released in that year, the command reports not-found (drop `--year` or pass a RAWG id) rather than resolving a different game from the same year.
 
 ### Will people actually finish it?
 

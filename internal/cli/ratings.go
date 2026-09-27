@@ -25,19 +25,44 @@ import (
 // and in the returned candidates, and the best match still resolves so the
 // rating card or comparison can proceed. Pin a remake with --year.
 func resolveTitleForMultiSource(ctx context.Context, cmd *cobra.Command, c *client.Client, flags *rootFlags, title, year string) (rawgGame, []ambiguousCandidate, error) {
+	// A bare-numeric argument is a RAWG id, matching retention and games
+	// get — the not-found hints below promise an id recovery path, so the
+	// multi-source commands must honor it. Detail is fetched by the
+	// caller via the returned ID.
+	// PATCH(amend-2026-09-28: ratings/series/similar accept a bare RAWG id) — was title-only, contradicting the hinted id recovery path
+	if id, ok := parseGameID(title); ok {
+		return rawgGame{ID: id}, nil, nil
+	}
 	exact, ranked, nearby, err := resolveExactTitleMatches(ctx, cmd, c, flags, title, year)
 	if err != nil {
 		return rawgGame{}, nil, err
 	}
 	if len(exact) == 0 {
-		// A pinned --year is a hard constraint: never resolve to a search
-		// hit from a different release year. Filter the ranked hits to the
-		// requested year first; only a year-matching hit can resolve.
+		// A pinned --year is a hard constraint on the title too:
+		// resolveExactTitleMatches already filtered exact-title matches to
+		// the requested year, so an empty set means no game with that
+		// title was released that year in the top RAWG results. Never
+		// fall back to an arbitrary year-matching hit — its title can be
+		// a different game entirely. The one safe partial-title path is a
+		// year-matching hit whose normalized name continues the query at
+		// a word boundary ("the witcher 3" -> "The Witcher 3: Wild Hunt"):
+		// an unrelated same-year game never passes that check.
+		// PATCH(amend-2026-09-28: year pin must not resolve a different title) — was filterByReleaseYear + bestKnownGame fallback
+		// PATCH(amend-2026-09-28: year-pinned partial titles resolve via a boundary-continuation hit) — was a hard not-found that broke "the witcher 3" --year 2015
 		if year != "" {
-			ranked = filterByReleaseYear(ranked, year)
-			if len(ranked) == 0 {
-				return rawgGame{}, nil, notFoundErr(fmt.Errorf("no game titled %q released in %s in the top RAWG search results; drop --year to resolve across years, or use a RAWG id", title, year))
+			continuations := make([]rawgGame, 0, len(ranked))
+			for _, g := range filterByReleaseYear(ranked, year) {
+				if isFranchiseContinuation(title, g.Name) {
+					continuations = append(continuations, g)
+				}
 			}
+			if len(continuations) > 0 {
+				best := bestKnownGame(continuations)
+				fmt.Fprintf(cmd.ErrOrStderr(), "resolved %q to %q (%s); no exact title match — year-pinned partial title resolved to a same-year continuation\n",
+					title, best.Name, year)
+				return best, nil, nil
+			}
+			return rawgGame{}, nil, notFoundErr(fmt.Errorf("no game titled %q released in %s in the top RAWG search results; drop --year to resolve across years, pass the full title, or use a RAWG id", title, year))
 		}
 		// No normalized exact match: fall back to the top-ranked search hit
 		// with an explicit notice. Users type partial titles ("the witcher
@@ -252,7 +277,8 @@ CLI can see: the RAWG community rating, Metacritic (via the RAWG field), and
 a keyless Steam review summary with current price. A failed Steam lookup
 degrades the card to RAWG + Metacritic and lists "steam" in sources_missing
 instead of failing. Titles shared by remakes across release years are
-flagged as ambiguous on stderr and in meta.ambiguous; pin with --year.`,
+flagged as ambiguous on stderr and in meta.ambiguous; pin with --year. A
+bare-numeric argument is a RAWG id, matching retention and games get.`,
 		Example: strings.Trim(`
   game-goat-pp-cli ratings "Elden Ring"
   game-goat-pp-cli ratings "God of War" --year 2018 --json
@@ -287,7 +313,11 @@ flagged as ambiguous on stderr and in meta.ambiguous; pin with --year.`,
 			if err != nil {
 				return err
 			}
-			meta := ratingsMeta{Source: "live", Title: title, ResolvedBy: "title"}
+			resolvedBy := "title"
+			if _, ok := parseGameID(title); ok {
+				resolvedBy = "id"
+			}
+			meta := ratingsMeta{Source: "live", Title: title, ResolvedBy: resolvedBy}
 			if year != "" {
 				meta.Year = year
 			}
