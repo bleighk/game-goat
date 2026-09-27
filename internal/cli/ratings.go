@@ -1,5 +1,5 @@
 // ratings.go — hand-written Slice B novel command (top-level) plus the
-// multi-source helpers shared with versus/series.
+// multi-source helpers shared with series and similar.
 // pp:data-source live — RAWG detail + keyless Steam storefront enrichment.
 // Standalone hand-authored file: generate --force preserves it (regen-merge).
 
@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ----- shared multi-source helpers (Slice B: ratings, versus, series) -----
+// ----- shared multi-source helpers (ratings, series, similar, retention) -----
 
 // resolveTitleForMultiSource maps a title to one RAWG game for the
 // multi-source commands. Unlike games get, remake ambiguity is a NOTICE,
@@ -68,7 +68,7 @@ func resolveTitleForMultiSource(ctx context.Context, cmd *cobra.Command, c *clie
 
 // fetchResolvedGameDetail resolves a title (with a non-fatal remake
 // ambiguity notice) and fetches its full RAWG detail record. Shared by
-// ratings and versus.
+// ratings and the other title-taking commands.
 func fetchResolvedGameDetail(ctx context.Context, cmd *cobra.Command, c *client.Client, flags *rootFlags, title, year string) (rawgGame, []ambiguousCandidate, error) {
 	match, candidates, err := resolveTitleForMultiSource(ctx, cmd, c, flags, title, year)
 	if err != nil {

@@ -391,6 +391,8 @@ func RegisterTools(s *server.MCPServer) {
 		),
 		makeAPIHandler("GET", "/tags/{id}", true, false, nil, mcpPageConfig{}, []mcpParamBinding{{PublicName: "id", WireName: "id", Location: "path"}}, []string{"id"}),
 	)
+	// Intent tools — higher-level compositions declared in the spec or lifted from recipes.
+	RegisterIntents(s)
 	// Search tool — faster than iterating list endpoints for finding specific items
 	s.AddTool(
 		mcplib.NewTool("search",
@@ -1248,7 +1250,7 @@ func handleContextResult(s *server.MCPServer, _ context.Context, _ mcplib.CallTo
 	}
 	ctx := map[string]any{
 		"api":         "game-goat",
-		"description": "Pick tonight's game and shrink the backlog - RAWG discovery plus a local decision-debt ledger that tells you what you will actually finish.",
+		"description": "Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents.",
 		"archetype":   "generic",
 		"tool_count":  len(s.ListTools()),
 		"paths":       paths,
@@ -1403,16 +1405,10 @@ func handleContextResult(s *server.MCPServer, _ context.Context, _ mcplib.CallTo
 		// Command-mirror capabilities are exposed through MCP by shelling out
 		// to the companion CLI binary.
 		"command_mirror_capabilities": registeredCommandMirrorCapabilities(s, []map[string]string{
-			{"name": "", "command": "backlog audit", "cli_command": "backlog audit", "description": "Decision-debt audit of your local backlog: unplayed %, median shelf-time, status ratios, plus stale, sunk-cost, and drop-candidate rows with follow-up recommendations.", "rationale": "", "via": "mcp-command-mirror"},
-			{"name": "", "command": "finishline", "cli_command": "finishline", "description": "Finish-rate dashboard over your backlog: finished %, monthly completion rate, months-to-zero-backlog projection, and 10% milestone checkpoints naming the next game to finish.", "rationale": "", "via": "mcp-command-mirror"},
-			{"name": "", "command": "radar", "cli_command": "radar", "description": "Upcoming releases from the next 90 days scored by genre overlap with your backlog-derived taste profile (needs RAWG_API_KEY; degrades to plain recency without it).", "rationale": "", "via": "mcp-command-mirror"},
+			{"name": "", "command": "similar", "cli_command": "similar", "description": "Games like <title>: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania)", "rationale": "", "via": "mcp-command-mirror"},
 			{"name": "", "command": "retention", "cli_command": "retention", "description": "Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY).", "rationale": "", "via": "mcp-command-mirror"},
-			{"name": "", "command": "moods list", "cli_command": "moods list", "description": "List the curated mood names that tonight --mood accepts, with their genre/tag clusters.", "rationale": "", "via": "mcp-command-mirror"},
 		}),
 		"playbook": []map[string]string{
-			{"topic": "", "insight": ""},
-			{"topic": "", "insight": ""},
-			{"topic": "", "insight": ""},
 			{"topic": "", "insight": ""},
 			{"topic": "", "insight": ""},
 		},

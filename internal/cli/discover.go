@@ -108,7 +108,7 @@ RAWG API: comma-separated ids or slugs for --genres/--tags/--platforms/
 				fmt.Fprintln(cmd.OutOrStdout(), "No games matched those filters.")
 				return nil
 			}
-			return printAutoTable(cmd.OutOrStdout(), gameTableRows(rows, nil, false))
+			return printAutoTable(cmd.OutOrStdout(), gameTableRows(rows))
 		},
 	}
 

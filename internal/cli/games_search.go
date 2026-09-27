@@ -398,7 +398,7 @@ func truncateList(values []string, max int) string {
 }
 
 // gameTableRows renders bounded cells for the generated human table.
-func gameTableRows(rows []gameRow, backlogIDs map[int]bool, includeBacklog bool) []map[string]any {
+func gameTableRows(rows []gameRow) []map[string]any {
 	items := make([]map[string]any, 0, len(rows))
 	for _, r := range rows {
 		metacritic := ""
@@ -422,13 +422,6 @@ func gameTableRows(rows []gameRow, backlogIDs map[int]bool, includeBacklog bool)
 			"playtime":   playtime,
 			"genres":     truncateList(r.Genres, 3),
 			"platforms":  truncateList(r.Platforms, 3),
-		}
-		if includeBacklog {
-			if backlogIDs != nil && backlogIDs[r.ID] {
-				item["backlog"] = "yes"
-			} else {
-				item["backlog"] = ""
-			}
 		}
 		items = append(items, item)
 	}
@@ -468,7 +461,7 @@ func renderGamesListView(cmd *cobra.Command, flags *rootFlags, games []rawgGame,
 		fmt.Fprintln(cmd.OutOrStdout(), "No games found.")
 		return nil
 	}
-	return printAutoTable(cmd.OutOrStdout(), gameTableRows(rows, nil, false))
+	return printAutoTable(cmd.OutOrStdout(), gameTableRows(rows))
 }
 
 // ----- games search -----
@@ -582,7 +575,7 @@ Pin a remake with --year, or fetch one game directly with --id.`,
 				fmt.Fprintln(cmd.OutOrStdout(), "No games matched the search.")
 				return nil
 			}
-			return printAutoTable(cmd.OutOrStdout(), gameTableRows(view.Results, nil, false))
+			return printAutoTable(cmd.OutOrStdout(), gameTableRows(view.Results))
 		},
 	}
 

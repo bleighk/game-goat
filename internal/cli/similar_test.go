@@ -104,3 +104,56 @@ func TestSimilarDryRunEnvelope(t *testing.T) {
 		t.Fatalf("dry-run envelope missing: %s", out.String())
 	}
 }
+
+func TestIDCSV(t *testing.T) {
+	if got := idCSV([]int{4, 51, 83}); got != "4,51,83" {
+		t.Fatalf("idCSV = %q", got)
+	}
+	if got := idCSV(nil); got != "" {
+		t.Fatalf("idCSV(nil) = %q", got)
+	}
+}
+
+func TestIsBundleOrSoundtrack(t *testing.T) {
+	for _, name := range []string{"Hollow Knight: Silksong & Soundtrack Bundle", "Halo Bundle", "Celeste Original Soundtrack"} {
+		if !isBundleOrSoundtrack(name) {
+			t.Fatalf("%q should be treated as packaging", name)
+		}
+	}
+	for _, name := range []string{"Hollow Knight: Silksong", "Halo 4", "The Witcher 2: Assassins of Kings"} {
+		if isBundleOrSoundtrack(name) {
+			t.Fatalf("%q is a game, not packaging", name)
+		}
+	}
+}
+
+func TestConfidentOnly(t *testing.T) {
+	gs := []rawgGame{{ID: 1, RatingsCount: 6}, {ID: 2, RatingsCount: 130}, {ID: 3, RatingsCount: 20}}
+	got := confidentOnly(gs)
+	if len(got) != 2 || got[0].ID != 2 || got[1].ID != 3 {
+		t.Fatalf("confidentOnly = %+v, want ids 2,3", got)
+	}
+	thin := []rawgGame{{ID: 9, RatingsCount: 1}}
+	if got := confidentOnly(thin); len(got) != 1 {
+		t.Fatalf("confidentOnly must return input when nothing clears the floor, got %+v", got)
+	}
+}
+
+func TestStudioCap(t *testing.T) {
+	for limit, want := range map[int]int{1: 1, 2: 1, 5: 3, 10: 5, 20: 10} {
+		if got := studioCap(limit); got != want {
+			t.Fatalf("studioCap(%d) = %d, want %d", limit, got, want)
+		}
+	}
+}
+
+func TestStudioLabel(t *testing.T) {
+	one := []rawgNamedRef{{Name: "Team Cherry"}}
+	if got := studioLabel(one); got != "Team Cherry" {
+		t.Fatalf("studioLabel(one) = %q", got)
+	}
+	many := []rawgNamedRef{{Name: "Bethesda Softworks"}, {Name: "id Software"}, {Name: "Panic Button"}, {Name: "Virtuos"}}
+	if got := studioLabel(many); got != "Bethesda Softworks, id Software +2 more" {
+		t.Fatalf("studioLabel(many) = %q", got)
+	}
+}

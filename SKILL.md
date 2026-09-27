@@ -1,6 +1,6 @@
 ---
 name: pp-game-goat
-description: "Pick tonight's game and shrink the backlog - RAWG discovery plus a local decision-debt ledger that tells you what you will actually finish."
+description: "Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents."
 author: "Brad Knight"
 license: "Apache-2.0"
 argument-hint: "<command> [args] | install cli|mcp"
@@ -40,8 +40,8 @@ If `--version` reports "command not found" after install, the runtime cannot see
 ### What this CLI covers
 - 350,000+ games across 50 platforms via RAWG (Video Games Database) (tags, genres, developers, publishers, creators, Metacritic scores, store links).
 - Keyless Steam enrichment: review scores and player counts joined into rating cards.
-- A local SQLite backlog with decision-debt fields (status, hours, finished date, your rating) powering audit, finishline, queue, and radar.
-- One free RAWG API key powers live commands (see Auth Setup); backlog and mood commands work offline.
+- Remake-aware title resolution: shared names (DOOM 1993 vs 2016, franchise shorthand like "halo") resolve with a notice on stderr and meta.ambiguous in JSON; pin with --year or a RAWG id.
+- One free RAWG API key powers live commands (see Auth Setup); local search over synced data works offline.
 
 ### Terms of Use
 - Free for personal use as long as you attribute RAWG as the source of the data and/or images and add an active
@@ -59,16 +59,14 @@ __[Read more](https://rawg.io/apidocs)__.
 
 ## When Not to Use This CLI
 
-Do not activate this CLI for requests that require creating, updating, deleting, publishing, commenting, upvoting, inviting, ordering, sending messages, booking, purchasing, or changing remote state. Also do not use it for game news, esports schedules, purchasing or checkout, price or deal tracking, or running/emulating games — RAWG (Video Games Database) exposes none of these. This printed CLI exposes read-only commands against the API for inspection, export, sync, and analysis, plus a local backlog that never touches remote state.
+Do not activate this CLI for requests that require creating, updating, deleting, publishing, commenting, upvoting, inviting, ordering, sending messages, booking, purchasing, or changing remote state. Also do not use it for game news, esports schedules, purchasing or checkout, price or deal tracking, or running/emulating games — RAWG (Video Games Database) exposes none of these. This printed CLI exposes read-only commands against the API for inspection, export, sync, and analysis.
 
 ## Unique Capabilities
 
 These capabilities aren't available in any other tool for this API.
-- **`backlog audit`** — Decision-debt audit of your local backlog: unplayed %, median shelf-time, status ratios, plus stale, sunk-cost, and drop-candidate rows with follow-up recommendations.
-- **`finishline`** — Finish-rate dashboard over your backlog: finished %, monthly completion rate, months-to-zero-backlog projection, and 10% milestone checkpoints naming the next game to finish.
-- **`radar`** — Upcoming releases from the next 90 days scored by genre overlap with your backlog-derived taste profile (needs RAWG_API_KEY; degrades to plain recency without it).
+
+- **`similar`** — Games like <title>: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carries its tier and a reason.
 - **`retention`** — Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY).
-- **`moods list`** — List the curated mood names that tonight --mood accepts, with their genre/tag clusters.
 
 ## Command Reference
 
@@ -125,27 +123,13 @@ These capabilities aren't available in any other tool for this API.
 - `game-goat-pp-cli games top-rated` — highest-rated games feed.
 - `game-goat-pp-cli games upcoming` — releases in the next 90 days.
 - `game-goat-pp-cli discover` — RAWG's filter surface (genres, tags, platforms, stores, dates, ordering, metacritic).
-- `game-goat-pp-cli trending` — most-added games, joined against your local backlog.
 
-**ratings · versus · series · studio · suggested · similar**
+**ratings · retention · series · similar**
 
 - `game-goat-pp-cli ratings <title>` — RAWG + Metacritic + Steam rating card.
-- `game-goat-pp-cli versus <A> <B>` — head-to-head comparison with a per-dimension verdict.
-- `game-goat-pp-cli series <title>` — franchise play-order with a next-unplayed pointer.
-- `game-goat-pp-cli studio <developer>` — a developer's release timeline.
-- `game-goat-pp-cli suggested <title>` — RAWG suggested games (falls back to a genre join when the tier-gated endpoint 403s).
-- `game-goat-pp-cli similar <title>` — genre-overlap similarity ranking.
-
-**backlog · queue · moods · tonight (local-first)**
-
-- `game-goat-pp-cli backlog add|list|remove|show|search` — local backlog with status, hours, rating, and notes.
-- `game-goat-pp-cli backlog audit` — decision-debt audit (stale, sunk-cost, drop candidates).
-- `game-goat-pp-cli finishline` — finish-rate dashboard and zero-backlog projection.
-- `game-goat-pp-cli queue` — next-play picks with reasons.
-- `game-goat-pp-cli moods list|show` — the mood vocabulary `tonight --mood` accepts.
-- `game-goat-pp-cli tonight` — mood + time-budget picks, backlog-aware.
-- `game-goat-pp-cli radar` — upcoming releases weighted by your backlog taste profile.
-- `game-goat-pp-cli retention <title>` — community beaten/dropped/playing/yet split (needs RAWG_API_KEY).
+- `game-goat-pp-cli retention <title>` — community beaten/dropped/playing/yet split with an aspirational-trap verdict (needs RAWG_API_KEY).
+- `game-goat-pp-cli series <title>` — franchise play order by release date, anchor included.
+- `game-goat-pp-cli similar <title>` — tiered recommendations: same studio (capped), defining gameplay tag, then shared genres; each row carries `tier` and `reason`.
 
 **framework**
 
@@ -165,28 +149,29 @@ game-goat-pp-cli which "<capability in your own words>"
 
 ## Recipes
 
-### 
+
+### Games like one you loved
 
 ```bash
-
+game-goat-pp-cli similar "Megabonk" --json --select results.name,results.tier,results.reason
 ```
 
-### 
+### Play a franchise in order
 
 ```bash
-
+game-goat-pp-cli series "zelda" --json
 ```
 
-### 
+### Pin a remake when titles collide
 
 ```bash
-
+game-goat-pp-cli ratings "resident evil 4" --year 2023 --json
 ```
 
-### 
+### Will people actually finish it?
 
 ```bash
-
+game-goat-pp-cli retention "elden ring" --json
 ```
 
 ## Auth Setup

@@ -3,7 +3,7 @@
   "name": "game-goat-pp-mcp",
   "display_name": "Rawg Video Games",
   "version": "4.32.5",
-  "description": "Pick tonight's game and shrink the backlog - RAWG discovery plus a local decision-debt ledger that tells you what you will actually finish.",
+  "description": "Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents.",
   "author": {
     "name": "CLI Printing Press"
   },

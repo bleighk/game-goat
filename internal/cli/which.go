@@ -26,11 +26,8 @@ type whichEntry struct {
 // Novel hero features come first (declaration-order ties); promoted
 // endpoint commands follow so natural-language queries can find them.
 var whichIndex = []whichEntry{
-	{Command: "backlog audit", Description: "Decision-debt audit of your local backlog: unplayed %, median shelf-time, status ratios, plus stale, sunk-cost, and drop-candidate rows with follow-up recommendations.", Group: "", WhyItMatters: ""},
-	{Command: "finishline", Description: "Finish-rate dashboard over your backlog: finished %, monthly completion rate, months-to-zero-backlog projection, and 10% milestone checkpoints naming the next game to finish.", Group: "", WhyItMatters: ""},
-	{Command: "radar", Description: "Upcoming releases from the next 90 days scored by genre overlap with your backlog-derived taste profile (needs RAWG_API_KEY; degrades to plain recency without it).", Group: "", WhyItMatters: ""},
+	{Command: "similar", Description: "Games like <title>: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carries its tier and a reason.", Group: "", WhyItMatters: ""},
 	{Command: "retention", Description: "Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY).", Group: "", WhyItMatters: ""},
-	{Command: "moods list", Description: "List the curated mood names that tonight --mood accepts, with their genre/tag clusters.", Group: "", WhyItMatters: ""},
 	{Command: "creator-roles", Description: "Get a list of creator positions (jobs).", Group: "creator-roles", WhyItMatters: "Get a list of creator positions (jobs)."}, // pp:which-promoted
 }
 

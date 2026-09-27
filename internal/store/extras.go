@@ -24,10 +24,5 @@ func (s *Store) migrateExtras(ctx context.Context, conn *sql.Conn) error {
 			return fmt.Errorf("extra migration failed: %w", err)
 		}
 	}
-	// Novel-feature tables (custom local-table migrations). Each migrator is
-	// idempotent and owns its SQL in its own file.
-	if err := s.migrateGameBacklog(ctx, conn); err != nil {
-		return err
-	}
 	return nil
 }

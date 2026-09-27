@@ -1,5 +1,5 @@
 // series.go — hand-written Slice B novel command (top-level).
-// pp:data-source live — RAWG game-series spine with a local backlog join.
+// pp:data-source live — RAWG game-series spine in release-date play order.
 // Standalone hand-authored file: generate --force preserves it (regen-merge).
 
 package cli
@@ -18,33 +18,30 @@ import (
 )
 
 type seriesEntry struct {
-	Order     int     `json:"order"`
-	ID        int     `json:"id"`
-	Name      string  `json:"name"`
-	Released  string  `json:"released"`
-	Year      string  `json:"year,omitempty"`
-	Rating    float64 `json:"rating"`
-	Playtime  int     `json:"playtime"`
-	OnBacklog bool    `json:"on_backlog"`
+	Order    int     `json:"order"`
+	ID       int     `json:"id"`
+	Name     string  `json:"name"`
+	Released string  `json:"released"`
+	Year     string  `json:"year,omitempty"`
+	Rating   float64 `json:"rating"`
+	Playtime int     `json:"playtime"`
 }
 
 type seriesMeta struct {
-	Source           string               `json:"source"`
-	Title            string               `json:"title"`
-	Year             string               `json:"year,omitempty"`
-	ResolvedBy       string               `json:"resolved_by"`
-	Via              string               `json:"via"`
-	Anchor           string               `json:"anchor,omitempty"`
-	Count            int                  `json:"count"`
-	Ambiguous        []ambiguousCandidate `json:"ambiguous,omitempty"`
-	Note             string               `json:"note,omitempty"`
-	BacklogAvailable bool                 `json:"backlog_available"`
+	Source     string               `json:"source"`
+	Title      string               `json:"title"`
+	Year       string               `json:"year,omitempty"`
+	ResolvedBy string               `json:"resolved_by"`
+	Via        string               `json:"via"`
+	Anchor     string               `json:"anchor,omitempty"`
+	Count      int                  `json:"count"`
+	Ambiguous  []ambiguousCandidate `json:"ambiguous,omitempty"`
+	Note       string               `json:"note,omitempty"`
 }
 
 type seriesView struct {
-	Meta         seriesMeta    `json:"meta"`
-	Results      []seriesEntry `json:"results"`
-	NextUnplayed *seriesEntry  `json:"next_unplayed,omitempty"`
+	Meta    seriesMeta    `json:"meta"`
+	Results []seriesEntry `json:"results"`
 }
 
 // fetchSeriesGames walks the RAWG series endpoints for one game id:
@@ -117,9 +114,8 @@ func newSeriesCmd(flags *rootFlags) *cobra.Command {
 		Short: "Franchise play order from the RAWG game-series endpoint",
 		Long: `Resolve a game by title, pull every game RAWG links to it via
 /games/{id}/game-series, and print a numbered franchise play order sorted
-by release date with year, rating, playtime, and a backlog flag from your
-local store. The first entry not on your backlog is pointed out as
-next_unplayed. An empty game-series falls back to parent-games (remakes and
+by release date with year, rating, and playtime. The anchor game itself is
+included. An empty game-series falls back to parent-games (remakes and
 editions). Titles shared by remakes are flagged as ambiguous; pin with
 --year.`,
 		Example: strings.Trim(`
@@ -220,32 +216,25 @@ editions). Titles shared by remakes are flagged as ambiguous; pin with
 			if len(games) > limit {
 				games = games[:limit]
 			}
-			backlogIDs, backlogAvailable, backlogErr := backlogGameIDs(ctx)
-			if backlogErr != nil {
-				fmt.Fprintf(cmd.ErrOrStderr(), "warning: could not read local backlog: %v\n", backlogErr)
-				backlogAvailable = false
-			}
 			entries := make([]seriesEntry, 0, len(games))
 			for i, g := range games {
 				entries = append(entries, seriesEntry{
-					Order:     i + 1,
-					ID:        g.ID,
-					Name:      g.Name,
-					Released:  g.Released,
-					Year:      yearOf(g.Released),
-					Rating:    g.Rating,
-					Playtime:  g.Playtime,
-					OnBacklog: backlogIDs != nil && backlogIDs[g.ID],
+					Order:    i + 1,
+					ID:       g.ID,
+					Name:     g.Name,
+					Released: g.Released,
+					Year:     yearOf(g.Released),
+					Rating:   g.Rating,
+					Playtime: g.Playtime,
 				})
 			}
 			meta := seriesMeta{
-				Source:           "live",
-				Title:            title,
-				ResolvedBy:       "title",
-				Via:              via,
-				Anchor:           match.Name,
-				Count:            len(entries),
-				BacklogAvailable: backlogAvailable && backlogErr == nil,
+				Source:     "live",
+				Title:      title,
+				ResolvedBy: "title",
+				Via:        via,
+				Anchor:     match.Name,
+				Count:      len(entries),
 			}
 			if year != "" {
 				meta.Year = year
@@ -259,14 +248,7 @@ editions). Titles shared by remakes are flagged as ambiguous; pin with
 			if total > len(entries) {
 				meta.Note = strings.TrimSpace(meta.Note + fmt.Sprintf(" showing the first %d of %d games; raise --limit for more", len(entries), total))
 			}
-			var nextUnplayed *seriesEntry
-			for i := range entries {
-				if !entries[i].OnBacklog {
-					nextUnplayed = &entries[i]
-					break
-				}
-			}
-			view := seriesView{Meta: meta, Results: entries, NextUnplayed: nextUnplayed}
+			view := seriesView{Meta: meta, Results: entries}
 			if !wantsHumanTable(cmd.OutOrStdout(), flags) {
 				return printJSONFiltered(cmd.OutOrStdout(), view, flags)
 			}
@@ -280,27 +262,19 @@ editions). Titles shared by remakes are flagged as ambiguous; pin with
 			// columns by field name and would bury the order column.)
 			tw := newTabWriter(cmd.OutOrStdout())
 			fmt.Fprintln(tw, strings.Join([]string{
-				bold("ORDER"), bold("NAME"), bold("YEAR"), bold("RATING"), bold("PLAYTIME"), bold("BACKLOG"),
+				bold("ORDER"), bold("NAME"), bold("YEAR"), bold("RATING"), bold("PLAYTIME"),
 			}, "\t"))
 			for _, e := range entries {
-				backlog := ""
-				if e.OnBacklog {
-					backlog = "yes"
-				}
 				fmt.Fprintln(tw, strings.Join([]string{
 					strconv.Itoa(e.Order),
 					e.Name,
 					orDash(e.Year),
 					fmt.Sprintf("%.1f", e.Rating),
 					strconv.Itoa(e.Playtime) + "h",
-					backlog,
 				}, "\t"))
 			}
 			if err := tw.Flush(); err != nil {
 				return err
-			}
-			if nextUnplayed != nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "next unplayed: #%d %s (%s)\n", nextUnplayed.Order, nextUnplayed.Name, orDash(nextUnplayed.Year))
 			}
 			if meta.Note != "" {
 				fmt.Fprintf(cmd.OutOrStdout(), "%s\n", meta.Note)

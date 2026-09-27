@@ -296,15 +296,12 @@ func isCobraUsageError(err error) bool {
 func newRootCmd(flags *rootFlags) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "game-goat-pp-cli",
-		Short: `Game Goat CLI — Pick tonight's game and shrink the backlog - RAWG discovery plus a local decision-debt ledger that tells you what you…`,
-		Long: `Game Goat CLI — Pick tonight's game and shrink the backlog - RAWG discovery plus a local decision-debt ledger that tells you what you will actually finish.
+		Short: `Game Goat CLI — Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations…`,
+		Long: `Game Goat CLI — Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents.
 
 Highlights (not in the official API docs):
-  • backlog audit   Decision-debt audit of your local backlog: unplayed %, median shelf-time, status ratios, plus stale, sunk-cost, and drop-candidate rows with follow-up recommendations.
-  • finishline   Finish-rate dashboard over your backlog: finished %, monthly completion rate, months-to-zero-backlog projection, and 10% milestone checkpoints naming the next game to finish.
-  • radar   Upcoming releases from the next 90 days scored by genre overlap with your backlog-derived taste profile (needs RAWG_API_KEY; degrades to plain recency without it).
+  • similar   Games like <title>: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carr…
   • retention   Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY).
-  • moods list   List the curated mood names that tonight --mood accepts, with their genre/tag clusters.
 
 Agent mode: add --agent to any command for JSON output + non-interactive mode.
 Health check: run 'game-goat-pp-cli doctor' to verify auth and connectivity.
@@ -482,11 +479,8 @@ See README.md or the bundled SKILL.md for recipes.`,
 	rootCmd.AddCommand(newTeachLookupCmd(flags))
 	rootCmd.AddCommand(newTeachPlaybookCmd(flags, learnCfg))
 	rootCmd.AddCommand(newPlaybookCmd(flags, learnCfg))
-	addNovelCommandIfAbsent(rootCmd, newNovelBacklogCmd(flags))
-	addNovelCommandIfAbsent(rootCmd, newNovelFinishlineCmd(flags))
-	addNovelCommandIfAbsent(rootCmd, newNovelMoodsCmd(flags))
-	addNovelCommandIfAbsent(rootCmd, newNovelRadarCmd(flags))
 	addNovelCommandIfAbsent(rootCmd, newNovelRetentionCmd(flags))
+	addNovelCommandIfAbsent(rootCmd, newNovelSimilarCmd(flags))
 	for _, hook := range novelCommandHooks {
 		hook(rootCmd, flags)
 	}

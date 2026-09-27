@@ -132,8 +132,7 @@ plays it.
 
 Remake collisions on the title are flagged ambiguous; pin with --year.
 
-For rating scores (RAWG/Metacritic/Steam) use 'ratings' instead; for your
-own playthrough history use 'backlog'.`,
+For rating scores (RAWG/Metacritic/Steam) use 'ratings' instead.`,
 		Example: strings.Trim(`
   game-goat-pp-cli retention "Elden Ring"
   game-goat-pp-cli retention "God of War" --year 2018 --json

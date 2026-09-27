@@ -1,16 +1,18 @@
-// similar.go — hand-written Slice D novel command (top-level).
-// pp:data-source live — resolve one game, then match candidates by the
-// seed's rarest gameplay tags (defining mechanics: roguelite, bullet hell,
-// loot...), falling back to a shared-genre join when the seed carries no
-// usable tags. RAWG has no "similar" endpoint on the free tier, so the
-// join is by design — tag-first keeps it a mechanics match, distinct from
-// 'suggested''s broader genre-join fallback.
+// similar.go — hand-written novel command (top-level).
+// pp:data-source live — resolve one game, then build a tiered recommendation
+// list from what RAWG's free tier can honestly say: same-studio games
+// (capped, the seed's own DLC/editions excluded), then the seed's defining
+// gameplay tag (tag-neighborhood co-occurrence), then a confidence-floored
+// shared-genre join. RAWG's /games/{id}/suggested endpoint is business-tier
+// only, so this join is by design. Absorbs the former 'suggested' command
+// (scope cut 2026-09-27).
 // Standalone hand-authored file: generate --force preserves it (regen-merge).
 
 package cli
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strconv"
@@ -67,7 +69,7 @@ type tagRef struct {
 // mechanicsTags names RAWG tags that describe HOW a game plays rather than
 // its trappings. When the seed carries one of these, it is the identity to
 // match: a roguelite's neighbors are roguelites, not "games with loot".
-// Same curation spirit as the moods vocabulary.
+// Hand-curated: the tags that name a core gameplay loop.
 var mechanicsTags = map[string]bool{
 	"roguelike": true, "roguelite": true, "bullet hell": true,
 	"hack and slash": true, "metroidvania": true, "platformer": true,
@@ -116,7 +118,7 @@ func gameplayTagsByRarity(g rawgGame) []tagRef {
 // separated tags= is a union, so single-tag queries are the tightest match
 // the API offers. fill is the caller's list size; a tag that fills it
 // outranks higher co-occurrence on a smaller set. Callers own dedupe and
-// ordering. Shared by 'similar' and 'suggested'.
+// ordering.
 func mechanicsClusterNeighborhood(ctx context.Context, cmd *cobra.Command, c *client.Client, flags *rootFlags, seed rawgGame, fill int) ([]rawgGame, tagRef, bool, error) {
 	seedTags := gameplayTagsByRarity(seed)
 	var mechTags []tagRef
@@ -221,23 +223,170 @@ func lessSimilarity(a, b similarityScore) bool {
 	return a.Rating > b.Rating
 }
 
+// minConfidentRatings is the smallest RAWG ratings_count treated as a
+// confident community signal. Below it a 4.7 is a handful of fans, not a
+// recommendation (UAT F-U13: megabonk's genre join led with 4.7s backed by
+// 6-7 ratings).
+const minConfidentRatings = 20
+
+// idCSV renders ids as a RAWG comma-separated param value.
+func idCSV(ids []int) string {
+	parts := make([]string, 0, len(ids))
+	for _, id := range ids {
+		parts = append(parts, strconv.Itoa(id))
+	}
+	return strings.Join(parts, ",")
+}
+
+// namedRefIDs extracts ids from a named-ref slice (developers, publishers).
+func namedRefIDs(refs []rawgNamedRef) []int {
+	ids := make([]int, 0, len(refs))
+	for _, ref := range refs {
+		ids = append(ids, ref.ID)
+	}
+	return ids
+}
+
+// broadGenres are RAWG genres carried by a majority of games; matching on
+// one of them alone is not a similarity signal (UAT F-U16: guildrun).
+var broadGenres = map[string]bool{
+	"indie": true, "action": true, "adventure": true,
+}
+
+// sharesOnlyBroadGenre reports whether g's only shared genre with the seed
+// is a broad one (Indie, Action, Adventure). Such a row matches millions of
+// games and carries nothing seed-specific.
+func sharesOnlyBroadGenre(g rawgGame, seedGenres map[string]bool) bool {
+	shared := 0
+	sharedName := ""
+	for _, ref := range g.Genres {
+		if seedGenres[strings.ToLower(ref.Name)] {
+			shared++
+			sharedName = strings.ToLower(ref.Name)
+		}
+	}
+	return shared == 1 && broadGenres[sharedName]
+}
+
+// isBundleOrSoundtrack reports whether a studio-catalog row is packaging
+// (a soundtrack or a bundle) rather than a distinct game to recommend
+// (UAT: "Hollow Knight: Silksong & Soundtrack Bundle").
+func isBundleOrSoundtrack(name string) bool {
+	n := strings.ToLower(name)
+	return strings.Contains(n, "soundtrack") || strings.Contains(n, "bundle")
+}
+
+// confidentOnly keeps rows with a real rating sample. A shorter confident
+// list beats one padded with tiny-sample outliers; when nothing clears the
+// floor the input is returned unchanged.
+func confidentOnly(gs []rawgGame) []rawgGame {
+	out := make([]rawgGame, 0, len(gs))
+	for _, g := range gs {
+		if g.RatingsCount >= minConfidentRatings {
+			out = append(out, g)
+		}
+	}
+	if len(out) == 0 {
+		return gs
+	}
+	return out
+}
+
+// rankByOverlap orders candidates by shared-genre count, then metacritic,
+// then rating-sample size, then rating.
+func rankByOverlap(gs []rawgGame, seedGenres map[string]bool) {
+	sort.SliceStable(gs, func(i, j int) bool {
+		si, sj := scoreSimilarity(gs[i], seedGenres), scoreSimilarity(gs[j], seedGenres)
+		if si.Shared != sj.Shared {
+			return si.Shared > sj.Shared
+		}
+		if si.Metacritic != sj.Metacritic {
+			return si.Metacritic > sj.Metacritic
+		}
+		if gs[i].RatingsCount != gs[j].RatingsCount {
+			return gs[i].RatingsCount > gs[j].RatingsCount
+		}
+		return si.Rating > sj.Rating
+	})
+}
+
+// studioLabel names the seed's credited developers for the studio-tier
+// reason. RAWG credits porters and publishers too, and the tier queries all
+// of them, so the label lists the first two plus a count rather than
+// implying a single studio.
+func studioLabel(devs []rawgNamedRef) string {
+	names := refNames(devs)
+	if len(names) <= 2 {
+		return strings.Join(names, ", ")
+	}
+	return fmt.Sprintf("%s +%d more", strings.Join(names[:2], ", "), len(names)-2)
+}
+
+// studioCap bounds the same-studio tier so a prolific studio cannot fill
+// the whole list with its own catalog (UAT: witcher 3 returned only CDPR).
+func studioCap(limit int) int {
+	return (limit + 1) / 2
+}
+
+// sharedGenreReason renders the genre-tier reason string.
+func sharedGenreReason(g rawgGame, seed rawgGame, seedGenres map[string]bool) string {
+	shared := make([]string, 0, len(g.Genres))
+	for _, ref := range g.Genres {
+		if seedGenres[strings.ToLower(ref.Name)] {
+			shared = append(shared, ref.Name)
+		}
+	}
+	if len(shared) == 0 {
+		return ""
+	}
+	noun := "genres"
+	if len(shared) == 1 {
+		noun = "genre"
+	}
+	return fmt.Sprintf("shares %d %s with %s (%s)", len(shared), noun, seed.Name, strings.Join(shared, ", "))
+}
+
+// seedAdditionIDs lists the seed's own DLC and editions
+// (/games/{id}/additions) so the studio tier does not recommend a game's
+// expansions as "similar" to it.
+func seedAdditionIDs(ctx context.Context, c *client.Client, seedID int) (map[int]bool, error) {
+	data, err := c.Get(ctx, fmt.Sprintf("/games/%d/additions", seedID), map[string]string{"page_size": "40"})
+	if err != nil {
+		return nil, err
+	}
+	var page struct {
+		Results []rawgGame `json:"results"`
+	}
+	if err := json.Unmarshal(data, &page); err != nil {
+		return nil, fmt.Errorf("parsing /games/%d/additions response: %w", seedID, err)
+	}
+	ids := make(map[int]bool, len(page.Results))
+	for _, g := range page.Results {
+		ids[g.ID] = true
+	}
+	return ids, nil
+}
+
 // ----- view -----
 
 type similarResult struct {
-	ID         int      `json:"id"`
-	Name       string   `json:"name"`
-	Released   string   `json:"released,omitempty"`
-	Rating     float64  `json:"rating"`
-	Metacritic *int     `json:"metacritic,omitempty"`
-	Genres     []string `json:"genres"`
-	OnBacklog  bool     `json:"on_backlog"`
-	Reason     string   `json:"reason,omitempty"`
+	ID           int      `json:"id"`
+	Name         string   `json:"name"`
+	Released     string   `json:"released,omitempty"`
+	Rating       float64  `json:"rating"`
+	RatingsCount int      `json:"ratings_count"`
+	Metacritic   *int     `json:"metacritic,omitempty"`
+	Genres       []string `json:"genres"`
+	Tier         string   `json:"tier"` // studio | mechanics | genre
+	Reason       string   `json:"reason,omitempty"`
 }
 
 type similarMeta struct {
 	Source     string               `json:"source"`
-	DataOrigin string               `json:"data_origin"` // shared-genre-join
+	DataOrigin string               `json:"data_origin"` // tiered-join
+	Tiers      []string             `json:"tiers"`
 	Seed       string               `json:"seed"`
+	SeedID     int                  `json:"seed_id"`
 	Note       string               `json:"note,omitempty"`
 	Ambiguous  []ambiguousCandidate `json:"ambiguous,omitempty"`
 	Count      int                  `json:"count"`
@@ -255,22 +404,29 @@ func newSimilarCmd(flags *rootFlags) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "similar <title>",
-		Short: "Games like <title>, matched by defining gameplay tags",
-		Long: `Find games similar to one you name. The seed title is resolved
-against RAWG (remake collisions are flagged as ambiguous; pin with --year),
-then candidates are matched by the seed's rarest gameplay tags — RAWG's own
-games_count per tag surfaces the defining mechanics (Loot, Action Roguelike)
-over broad descriptors (Action, Pixel Graphics) — ordered by community
-rating. Seeds with no usable tags fall back to a shared-genre join. Every
-result carries a reason and an on_backlog flag from your local store.
+		Short: "Games like <title>: same studio, defining gameplay tag, then shared genres",
+		Long: `Find games like one you name. The seed title is resolved against RAWG
+(remake collisions are flagged ambiguous; pin with --year), then results are
+filled in tiers:
 
-RAWG has no free-tier "similar games" endpoint, so the join is by design:
-'similar' matches mechanics via tags; 'suggested' takes the broader genre
-join when its business-tier endpoint denies a free key.`,
+  studio     other games by the seed's developer (at most half the list;
+             the seed's own DLC, editions, soundtracks, and bundles excluded)
+  mechanics  games carrying the seed's defining gameplay tag (roguelite,
+             metroidvania...), picked by tag-neighborhood co-occurrence
+  genre      a shared-genre join, only when the earlier tiers run short
+
+Every tier drops tiny rating samples (under 20 ratings) when confident rows
+exist. For seeds RAWG knows little about (no gameplay tags, no studio), rows
+sharing only a broad genre (Indie, Action, Adventure) are hidden and
+meta.note says so. Each row carries its tier and a reason; meta.tiers lists
+the tiers that contributed.
+
+RAWG's own /games/{id}/suggested endpoint is business-tier only, so this
+join over free-tier endpoints is by design.`,
 		Example: strings.Trim(`
   game-goat-pp-cli similar "Hollow Knight"
   game-goat-pp-cli similar "God of War" --year 2018
-  game-goat-pp-cli similar "Hollow Knight" --limit 5 --json --select results.name,results.reason
+  game-goat-pp-cli similar "Megabonk" --limit 5 --json --select results.name,results.tier,results.reason
 `, "\n"),
 		Annotations: map[string]string{
 			"mcp:read-only":  "true",
@@ -308,139 +464,132 @@ join when its business-tier endpoint denies a free key.`,
 			if err != nil {
 				return err
 			}
-
-			sourceGenres := map[string]bool{}
+			seedGenres := map[string]bool{}
 			for _, ref := range seed.Genres {
-				sourceGenres[strings.ToLower(ref.Name)] = true
+				seedGenres[strings.ToLower(ref.Name)] = true
 			}
 
-			backlogIDs, _, bidErr := backlogGameIDs(ctx)
-			if bidErr != nil {
-				fmt.Fprintf(cmd.ErrOrStderr(), "warning: could not read local backlog for on-backlog flags: %v\n", bidErr)
-			}
-			// Mechanics match first: query /games by the seed's rarest
-			// gameplay tags (its defining mechanics). A genre join calls
-			// The Last of Us "similar" to an indie roguelite because both
-			// are Action; the tag join finds the roguelites. Ladder from
-			// tight (3 rarest tags intersected) to broad (1 tag), keeping
-			// the first intersection that fills the list.
-			seedTags := gameplayTagsByRarity(seed)
-			dataOrigin := "tag-mechanics-join"
-			note := "RAWG has no free-tier similar endpoint; results match the seed's defining gameplay tags (rarest first), ordered by community rating"
-			var usedTags []tagRef
-			pool := make([]rawgGame, 0, limit+4)
+			results := make([]similarResult, 0, limit)
 			seen := map[int]bool{seed.ID: true}
-			addUnseen := func(gs []rawgGame) []rawgGame {
-				out := make([]rawgGame, 0, len(gs))
-				for _, g := range gs {
-					if g.ID != 0 && !seen[g.ID] && !(g.Slug != "" && g.Slug == seed.Slug) {
-						seen[g.ID] = true
-						out = append(out, g)
-					}
+			add := func(g rawgGame, tier, reason string) bool {
+				if len(results) >= limit || g.ID == 0 || seen[g.ID] || (g.Slug != "" && g.Slug == seed.Slug) {
+					return false
 				}
-				return out
+				seen[g.ID] = true
+				results = append(results, similarResult{
+					ID: g.ID, Name: g.Name, Released: g.Released, Rating: g.Rating,
+					RatingsCount: g.RatingsCount, Metacritic: g.Metacritic,
+					Genres: refNames(g.Genres), Tier: tier, Reason: reason,
+				})
+				return true
 			}
-			// Mechanics cluster: the seed's identity tags, resolved by
-			// the shared neighborhood probe (see mechanicsClusterNeighborhood
-			// for the co-occurrence scoring rationale).
-			if nb, tag, ok, nerr := mechanicsClusterNeighborhood(ctx, cmd, c, flags, seed, limit); nerr != nil {
-				return nerr
-			} else if ok {
-				usedTags = []tagRef{tag}
-				pool = append(pool, addUnseen(nb)...)
-			}
-			// No mechanics signal at all: fall back to the rarest generic
-			// gameplay tag, single-tag query, -added canon.
-			if len(pool) == 0 {
-				for _, t := range seedTags {
-					gs, _, terr := fetchGamesResults(ctx, cmd, c, flags, "live", map[string]string{
-						"tags":      strconv.Itoa(t.ID),
-						"ordering":  "-added",
-						"page_size": "20",
-					})
-					if terr != nil {
-						return terr
+			tiers := make([]string, 0, 3)
+			notes := []string{"RAWG's suggested endpoint is business-tier only; results are a tiered join over free-tier data"}
+
+			// Tier 1: same studio, capped, seed's own additions excluded.
+			if devIDs := namedRefIDs(seed.Developers); len(devIDs) > 0 {
+				excluded, aerr := seedAdditionIDs(ctx, c, seed.ID)
+				if aerr != nil {
+					fmt.Fprintf(cmd.ErrOrStderr(), "warning: could not read %q's DLC/editions; studio tier may include them: %v\n", seed.Name, aerr)
+				}
+				gs, _, derr := fetchGamesResults(ctx, cmd, c, flags, "live", map[string]string{
+					"developers": idCSV(devIDs),
+					"ordering":   "-rating",
+					"page_size":  strconv.Itoa(limit * 2),
+				})
+				if derr != nil {
+					return derr
+				}
+				kept := make([]rawgGame, 0, len(gs))
+				for _, g := range gs {
+					if excluded[g.ID] || isBundleOrSoundtrack(g.Name) {
+						continue
 					}
-					gs = addUnseen(gs)
-					if len(gs) > 0 {
-						usedTags = []tagRef{t}
-						pool = append(pool, gs...)
+					kept = append(kept, g)
+				}
+				reason := fmt.Sprintf("same studio as %s (%s)", seed.Name, studioLabel(seed.Developers))
+				added := 0
+				for _, g := range confidentOnly(kept) {
+					if added >= studioCap(limit) {
 						break
 					}
+					if add(g, "studio", reason) {
+						added++
+					}
+				}
+				if added > 0 {
+					tiers = append(tiers, "studio")
 				}
 			}
-			// Genre join: broader neighbors. Fills the list when tag
-			// intersections run narrow, and replaces them entirely when
-			// the seed has no gameplay tags.
-			if len(pool) < limit && len(genreIDList(seed)) > 0 {
-				if len(pool) == 0 {
-					dataOrigin = "shared-genre-join"
-					note = "RAWG has no free-tier similar endpoint and this seed has no usable gameplay tags; results are a shared-genre join (metacritic + rating tiebreak)"
+
+			// Tier 2: the seed's defining gameplay tag.
+			if len(results) < limit {
+				nb, tag, ok, nerr := mechanicsClusterNeighborhood(ctx, cmd, c, flags, seed, limit)
+				if nerr != nil {
+					fmt.Fprintf(cmd.ErrOrStderr(), "warning: mechanics-tag tier failed: %v\n", nerr)
+				} else if ok {
+					nb = confidentOnly(nb)
+					rankByOverlap(nb, seedGenres)
+					tagName := strings.ToLower(tag.Name)
+					reason := fmt.Sprintf("plays like %s (%s)", seed.Name, tagName)
+					added := 0
+					for _, g := range nb {
+						if add(g, "mechanics", reason) {
+							added++
+						}
+					}
+					if added > 0 {
+						tiers = append(tiers, "mechanics")
+						notes = append(notes, fmt.Sprintf("defining gameplay tag: %s", tagName))
+					}
 				}
+			}
+
+			// Tier 3: shared-genre join, only when the list is still short.
+			// A thin seed (no gameplay tags, no studio) can only reach this
+			// tier; hide rows sharing only a broad genre - the popularity
+			// canon, not seed-specific matches (UAT F-U15/F-U16).
+			thin := len(gameplayTagsByRarity(seed)) == 0 && len(namedRefIDs(seed.Developers)) == 0
+			if genreIDs := genreIDList(seed); len(results) < limit && len(genreIDs) > 0 {
 				gs, _, gerr := fetchGamesResults(ctx, cmd, c, flags, "live", map[string]string{
-					"genres":    idCSV(genreIDList(seed)),
+					"genres":    idCSV(genreIDs),
 					"ordering":  "-rating",
-					"page_size": "20",
+					"page_size": strconv.Itoa(limit * 3),
 				})
 				if gerr != nil {
 					return gerr
 				}
-				// No seed tags and nothing from the tag tiers: the genre
-				// join is the only signal. Hide single-broad-genre rows —
-				// the popularity canon, not seed-specific matches (F-U16).
-				if len(pool) == 0 && len(seedTags) == 0 {
-					filtered := make([]rawgGame, 0, len(gs))
-					for _, g := range gs {
-						if !sharesOnlyBroadGenre(g, sourceGenres) {
-							filtered = append(filtered, g)
-						}
+				gs = confidentOnly(gs)
+				rankByOverlap(gs, seedGenres)
+				added, hidden := 0, 0
+				for _, g := range gs {
+					if len(results) >= limit {
+						break
 					}
-					if len(filtered) != len(gs) {
-						note += "; weak single-broad-genre matches are hidden"
+					if thin && sharesOnlyBroadGenre(g, seedGenres) {
+						hidden++
+						continue
 					}
-					gs = filtered
+					if add(g, "genre", sharedGenreReason(g, seed, seedGenres)) {
+						added++
+					}
 				}
-				pool = append(pool, addUnseen(gs)...)
+				if added > 0 {
+					tiers = append(tiers, "genre")
+				}
+				if thin {
+					notes = append(notes, fmt.Sprintf("RAWG has minimal data on this game (no gameplay tags, no studio); %d weak single-broad-genre matches hidden", hidden))
+					fmt.Fprintf(cmd.ErrOrStderr(), "note: RAWG has minimal data on %q (no gameplay tags, no studio) - weak single-broad-genre matches are hidden; anything shown shares a specific genre\n", seed.Name)
+				}
 			}
-			if len(pool) > limit {
-				pool = pool[:limit]
+			if len(results) == 0 {
+				notes = append(notes, "no tier produced a match")
 			}
 
-			results := make([]similarResult, 0, len(pool))
-			for _, g := range pool {
-				genres := refNames(g.Genres)
-				reason := ""
-				if dataOrigin == "tag-mechanics-join" && len(usedTags) > 0 {
-					names := make([]string, 0, len(usedTags))
-					for _, t := range usedTags {
-						names = append(names, t.Name)
-					}
-					reason = fmt.Sprintf("matches %s's defining tags (%s)", seed.Name, strings.Join(names, ", "))
-				} else {
-					shared := make([]string, 0, len(genres))
-					for _, name := range genres {
-						if sourceGenres[strings.ToLower(name)] {
-							shared = append(shared, name)
-						}
-					}
-					if len(shared) > 0 {
-						noun := "genres"
-						if len(shared) == 1 {
-							noun = "genre"
-						}
-						reason = fmt.Sprintf("shares %d %s with %s (%s)", len(shared), noun, seed.Name, strings.Join(shared, ", "))
-					}
-				}
-				results = append(results, similarResult{
-					ID: g.ID, Name: g.Name, Released: g.Released,
-					Rating: g.Rating, Metacritic: g.Metacritic, Genres: genres,
-					OnBacklog: backlogIDs[g.ID], Reason: reason,
-				})
-			}
 			view := similarView{
 				Meta: similarMeta{
-					Source: "live", DataOrigin: dataOrigin, Seed: seed.Name,
-					Note:      note,
+					Source: "live", DataOrigin: "tiered-join", Tiers: tiers,
+					Seed: seed.Name, SeedID: seed.ID, Note: strings.Join(notes, "; "),
 					Ambiguous: candidates, Count: len(results), Limit: limit,
 				},
 				Results: results,
@@ -453,20 +602,16 @@ join when its business-tier endpoint denies a free key.`,
 				fmt.Fprintf(w, "No similar games found for %q. Browse by genre: game-goat-pp-cli discover\n", seed.Name)
 				return nil
 			}
-			items := make([]map[string]any, 0, len(results))
+			tw := newTabWriter(w)
+			fmt.Fprintln(tw, strings.Join([]string{bold("SIMILAR"), bold("TIER"), bold("RATING"), bold("GENRES"), bold("REASON")}, "\t"))
 			for _, r := range results {
-				rating := ""
+				rating := "-"
 				if r.Rating > 0 {
-					rating = fmt.Sprintf("%.1f", r.Rating)
+					rating = fmt.Sprintf("%.1f (%d)", r.Rating, r.RatingsCount)
 				}
-				items = append(items, map[string]any{
-					"similar": r.Name,
-					"rating":  rating,
-					"genres":  strings.Join(r.Genres, ","),
-					"reason":  r.Reason,
-				})
+				fmt.Fprintln(tw, strings.Join([]string{r.Name, r.Tier, rating, truncateList(r.Genres, 3), r.Reason}, "\t"))
 			}
-			return printAutoTable(w, items)
+			return tw.Flush()
 		},
 	}
 
@@ -475,8 +620,8 @@ join when its business-tier endpoint denies a free key.`,
 	return cmd
 }
 
-func init() {
-	registerNovelCommand(func(root *cobra.Command, flags *rootFlags) {
-		addNovelCommandIfAbsent(root, newSimilarCmd(flags))
-	})
+// newNovelSimilarCmd is the constructor the generated root registers for
+// the 'similar' novel feature.
+func newNovelSimilarCmd(flags *rootFlags) *cobra.Command {
+	return newSimilarCmd(flags)
 }

@@ -1,6 +1,6 @@
 # Game Goat CLI
 
-**Pick tonight's game and shrink the backlog - RAWG discovery plus a local decision-debt ledger that tells you what you will actually finish.**
+**Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents.**
 
 ## Install
 
@@ -121,51 +121,49 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 ```bash
 game-goat-pp-cli auth set-token
 
-game-goat-pp-cli sync --resources games --latest-only --max-pages 3
 
-game-goat-pp-cli moods list
+game-goat-pp-cli games search "hollow knight" --json
 
-game-goat-pp-cli tonight --mood cozy --max-hours 4
 
-game-goat-pp-cli backlog add "Hollow Knight"
+game-goat-pp-cli ratings "hollow knight" --json
 
-game-goat-pp-cli queue --json
+
+game-goat-pp-cli similar "hollow knight" --json
 
 ```
 
 ## Unique Features
 
 These capabilities aren't available in any other tool for this API.
-- **`backlog audit`** — Decision-debt audit of your local backlog: unplayed %, median shelf-time, status ratios, plus stale, sunk-cost, and drop-candidate rows with follow-up recommendations.
-- **`finishline`** — Finish-rate dashboard over your backlog: finished %, monthly completion rate, months-to-zero-backlog projection, and 10% milestone checkpoints naming the next game to finish.
-- **`radar`** — Upcoming releases from the next 90 days scored by genre overlap with your backlog-derived taste profile (needs RAWG_API_KEY; degrades to plain recency without it).
+
+- **`similar`** — Games like <title>: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carries its tier and a reason.
 - **`retention`** — Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY).
-- **`moods list`** — List the curated mood names that tonight --mood accepts, with their genre/tag clusters.
 
 ## Recipes
 
-### 
+
+### Games like one you loved
 
 ```bash
-
+game-goat-pp-cli similar "Megabonk" --json --select results.name,results.tier,results.reason
 ```
 
-### 
+### Play a franchise in order
 
 ```bash
-
+game-goat-pp-cli series "zelda" --json
 ```
 
-### 
+### Pin a remake when titles collide
 
 ```bash
-
+game-goat-pp-cli ratings "resident evil 4" --year 2023 --json
 ```
 
-### 
+### Will people actually finish it?
 
 ```bash
-
+game-goat-pp-cli retention "elden ring" --json
 ```
 
 ## Usage
@@ -354,7 +352,7 @@ Environment variables:
 
 | Name | Kind | Required | Description |
 | --- | --- | --- | --- |
-| `RAWG_API_KEY` | per_call | Yes for live RAWG commands | Set to your API credential. Backlog, mood, finishline, queue, search, and analytics commands work without it. |
+| `RAWG_API_KEY` | per_call | Yes for live RAWG commands | Set to your API credential. Local search and analytics over synced data work without it. |
 
 ### agentcookie (optional)
 
