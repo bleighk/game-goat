@@ -17,6 +17,7 @@ func newGamesTwitchGamesReadCmd(flags *rootFlags) *cobra.Command {
 		Use:         "games-read <id>",
 		Aliases:     []string{"get"},
 		Short:       "Get streams on Twitch associated with the game, available only for business and enterprise API users.",
+		Example:     "  game-goat-pp-cli games twitch games-read 3498 --json",
 		Annotations: map[string]string{"pp:endpoint": "twitch.games-read", "pp:method": "GET", "pp:path": "/games/{id}/twitch", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

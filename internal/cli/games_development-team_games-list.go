@@ -21,6 +21,7 @@ func newGamesDevelopmentTeamGamesListCmd(flags *rootFlags) *cobra.Command {
 		Use:         "games-list <game_pk>",
 		Aliases:     []string{"get"},
 		Short:       "Get a list of individual creators that were part of the development team.",
+		Example:     "  game-goat-pp-cli games development-team games-list 3498 --json",
 		Annotations: map[string]string{"pp:endpoint": "development-team.games-list", "pp:method": "GET", "pp:path": "/games/{game_pk}/development-team", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

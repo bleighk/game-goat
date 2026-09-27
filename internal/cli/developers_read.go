@@ -17,6 +17,7 @@ func newDevelopersReadCmd(flags *rootFlags) *cobra.Command {
 		Use:         "read <id>",
 		Aliases:     []string{"get"},
 		Short:       "Get details of the developer.",
+		Example:     "  game-goat-pp-cli developers read 405 --json",
 		Annotations: map[string]string{"pp:endpoint": "developers.read", "pp:method": "GET", "pp:path": "/developers/{id}", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

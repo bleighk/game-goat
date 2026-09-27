@@ -20,6 +20,7 @@ func newGamesParentGamesGamesListCmd(flags *rootFlags) *cobra.Command {
 		Use:         "games-list <game_pk>",
 		Aliases:     []string{"get"},
 		Short:       "Get a list of parent games for DLC's and editions.",
+		Example:     "  game-goat-pp-cli games parent-games games-list 43252 --json",
 		Annotations: map[string]string{"pp:endpoint": "parent-games.games-list", "pp:method": "GET", "pp:path": "/games/{game_pk}/parent-games", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

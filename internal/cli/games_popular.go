@@ -26,7 +26,7 @@ func newGamesPopularCmd(flags *rootFlags) *cobra.Command {
 		Annotations: map[string]string{
 			"mcp:read-only":  "true",
 			"pp:data-source": "live",
-			"pp:happy-args":  "--limit=5;--dry-run",
+			"pp:happy-args":  "--limit=5",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if dryRunOK(flags) {

@@ -17,6 +17,7 @@ func newCreatorsReadCmd(flags *rootFlags) *cobra.Command {
 		Use:         "read <id>",
 		Aliases:     []string{"get"},
 		Short:       "Get details of the creator.",
+		Example:     "  game-goat-pp-cli creators read 31 --json",
 		Annotations: map[string]string{"pp:endpoint": "creators.read", "pp:method": "GET", "pp:path": "/creators/{id}", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

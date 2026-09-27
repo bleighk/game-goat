@@ -17,6 +17,7 @@ func newGamesSuggestedGamesReadCmd(flags *rootFlags) *cobra.Command {
 		Use:         "games-read <id>",
 		Aliases:     []string{"get"},
 		Short:       "Get a list of visually similar games, available only for business and enterprise API users.",
+		Example:     "  game-goat-pp-cli games suggested games-read 3498 --json",
 		Annotations: map[string]string{"pp:endpoint": "suggested.games-read", "pp:method": "GET", "pp:path": "/games/{id}/suggested", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

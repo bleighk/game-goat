@@ -17,6 +17,7 @@ func newGamesReadCmd(flags *rootFlags) *cobra.Command {
 		Use:         "read <id>",
 		Aliases:     []string{"get"},
 		Short:       "Get details of the game.",
+		Example:     "  game-goat-pp-cli games read 3498 --json",
 		Annotations: map[string]string{"pp:endpoint": "games.read", "pp:method": "GET", "pp:path": "/games/{id}", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

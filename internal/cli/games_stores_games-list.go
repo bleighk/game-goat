@@ -21,6 +21,7 @@ func newGamesStoresGamesListCmd(flags *rootFlags) *cobra.Command {
 		Use:         "games-list <game_pk>",
 		Aliases:     []string{"get"},
 		Short:       "Get links to the stores that sell the game.",
+		Example:     "  game-goat-pp-cli games stores games-list 3498 --json",
 		Annotations: map[string]string{"pp:endpoint": "stores.games-list", "pp:method": "GET", "pp:path": "/games/{game_pk}/stores", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

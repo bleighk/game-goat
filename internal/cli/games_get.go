@@ -160,7 +160,7 @@ release year with --year or use the RAWG id.`,
 		Annotations: map[string]string{
 			"mcp:read-only":  "true",
 			"pp:data-source": "live",
-			"pp:happy-args":  "title=Hollow Knight;--dry-run",
+			"pp:happy-args":  "title=Hollow Knight",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 && cmd.Flags().NFlag() == 0 {

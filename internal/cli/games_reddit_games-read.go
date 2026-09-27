@@ -17,6 +17,7 @@ func newGamesRedditGamesReadCmd(flags *rootFlags) *cobra.Command {
 		Use:         "games-read <id>",
 		Aliases:     []string{"get"},
 		Short:       "Get a list of most recent posts from the game's subreddit.",
+		Example:     "  game-goat-pp-cli games reddit games-read 3498 --json",
 		Annotations: map[string]string{"pp:endpoint": "reddit.games-read", "pp:method": "GET", "pp:path": "/games/{id}/reddit", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

@@ -64,7 +64,6 @@ Do not activate this CLI for requests that require creating, updating, deleting,
 ## Unique Capabilities
 
 These capabilities aren't available in any other tool for this API.
-
 - **`similar`** — Games like <title>: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carries its tier and a reason.
 - **`retention`** — Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY).
 
@@ -148,7 +147,6 @@ game-goat-pp-cli which "<capability in your own words>"
 `which` resolves a natural-language capability query to the best matching command from this CLI's curated feature index. Exit code `0` means at least one match; exit code `2` means no confident match — fall back to `--help` or use a narrower query. `--json` (and other machine formats) keep that exit-2 contract and write `{"matches":[]}` on stdout so agents can inspect the envelope without treating a miss as success.
 
 ## Recipes
-
 
 ### Games like one you loved
 

@@ -18,7 +18,7 @@
   "spec_checksum": "sha256:ad4e705ed809cea34ae4ee534815e064cedcb14450c26582f8fee0e6bd606e94",
   "run_id": "20260927-155341-72694577",
   "category": "media-and-entertainment",
-  "description": "Pick tonight's game and shrink the backlog - RAWG discovery plus a local decision-debt ledger that tells you what you will actually finish.",
+  "description": "Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents.",
   "mcp_binary": "game-goat-pp-mcp",
   "mcp_tool_count": 30,
   "mcp_ready": "full",
@@ -32,28 +32,13 @@
   "novel_features": [
     {
       "name": "",
-      "command": "backlog audit",
-      "description": "Decision-debt audit of your local backlog: unplayed %, median shelf-time, status ratios, plus stale, sunk-cost, and drop-candidate rows with follow-up recommendations."
-    },
-    {
-      "name": "",
-      "command": "finishline",
-      "description": "Finish-rate dashboard over your backlog: finished %, monthly completion rate, months-to-zero-backlog projection, and 10% milestone checkpoints naming the next game to finish."
-    },
-    {
-      "name": "",
-      "command": "radar",
-      "description": "Upcoming releases from the next 90 days scored by genre overlap with your backlog-derived taste profile (needs RAWG_API_KEY; degrades to plain recency without it)."
+      "command": "similar",
+      "description": "Games like \u003ctitle\u003e: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carries its tier and a reason."
     },
     {
       "name": "",
       "command": "retention",
       "description": "Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY)."
-    },
-    {
-      "name": "",
-      "command": "moods list",
-      "description": "List the curated mood names that tonight --mood accepts, with their genre/tag clusters."
     }
   ],
   "novel_features_built": [
@@ -86,16 +71,16 @@
   "verify": {
     "mode": "mock",
     "pass_rate": 100,
-    "passed": 80,
-    "total": 80,
+    "passed": 65,
+    "total": 65,
     "data_pipeline": true,
     "verdict": "PASS"
   },
   "scorecard": {
     "steinberger": {
-      "percentage": 91,
+      "percentage": 94,
       "grade": "A",
-      "total": 91
+      "total": 94
     }
   }
 }

@@ -17,6 +17,7 @@ func newTagsReadCmd(flags *rootFlags) *cobra.Command {
 		Use:         "read <id>",
 		Aliases:     []string{"get"},
 		Short:       "Get details of the tag.",
+		Example:     "  game-goat-pp-cli tags read 31 --json",
 		Annotations: map[string]string{"pp:endpoint": "tags.read", "pp:method": "GET", "pp:path": "/tags/{id}", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

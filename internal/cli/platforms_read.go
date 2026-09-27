@@ -17,6 +17,7 @@ func newPlatformsReadCmd(flags *rootFlags) *cobra.Command {
 		Use:         "read <id>",
 		Aliases:     []string{"get"},
 		Short:       "Get details of the platform.",
+		Example:     "  game-goat-pp-cli platforms read 4 --json",
 		Annotations: map[string]string{"pp:endpoint": "platforms.read", "pp:method": "GET", "pp:path": "/platforms/{id}", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

@@ -11,8 +11,8 @@ func TestIsFranchiseContinuation(t *testing.T) {
 		{"halo", "Halo: Reach", true},
 		{"halo", "Halo 3: ODST", true},
 		{"halo", "Halo's Adventure", false}, // apostrophe is not a boundary
-		{"halo", "HALO", false},            // not longer than the query
-		{"halo", "HALO (2016)", false},    // year-strip makes it equal, not longer
+		{"halo", "HALO", false},             // not longer than the query
+		{"halo", "HALO (2016)", false},      // year-strip makes it equal, not longer
 		{"zelda", "Zelda II: The Adventure of Link", true},
 		{"zelda", "The Legend of Zelda", false}, // not a continuation
 		{"megabonk", "Duke Nukem 3D: Megaton Edition", false},

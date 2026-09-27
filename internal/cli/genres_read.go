@@ -17,6 +17,7 @@ func newGenresReadCmd(flags *rootFlags) *cobra.Command {
 		Use:         "read <id>",
 		Aliases:     []string{"get"},
 		Short:       "Get details of the genre.",
+		Example:     "  game-goat-pp-cli genres read 4 --json",
 		Annotations: map[string]string{"pp:endpoint": "genres.read", "pp:method": "GET", "pp:path": "/genres/{id}", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

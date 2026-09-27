@@ -21,6 +21,7 @@ func newGamesScreenshotsGamesListCmd(flags *rootFlags) *cobra.Command {
 		Use:         "games-list <game_pk>",
 		Aliases:     []string{"get"},
 		Short:       "Get screenshots for the game.",
+		Example:     "  game-goat-pp-cli games screenshots games-list 3498 --json",
 		Annotations: map[string]string{"pp:endpoint": "screenshots.games-list", "pp:method": "GET", "pp:path": "/games/{game_pk}/screenshots", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

@@ -20,6 +20,7 @@ func newGamesAdditionsGamesListCmd(flags *rootFlags) *cobra.Command {
 		Use:         "games-list <game_pk>",
 		Aliases:     []string{"get"},
 		Short:       "Get a list of DLC's for the game, GOTY and other editions, companion apps, etc.",
+		Example:     "  game-goat-pp-cli games additions games-list 3328 --json",
 		Annotations: map[string]string{"pp:endpoint": "additions.games-list", "pp:method": "GET", "pp:path": "/games/{game_pk}/additions", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

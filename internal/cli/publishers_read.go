@@ -17,6 +17,7 @@ func newPublishersReadCmd(flags *rootFlags) *cobra.Command {
 		Use:         "read <id>",
 		Aliases:     []string{"get"},
 		Short:       "Get details of the publisher.",
+		Example:     "  game-goat-pp-cli publishers read 354 --json",
 		Annotations: map[string]string{"pp:endpoint": "publishers.read", "pp:method": "GET", "pp:path": "/publishers/{id}", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

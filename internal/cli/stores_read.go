@@ -17,6 +17,7 @@ func newStoresReadCmd(flags *rootFlags) *cobra.Command {
 		Use:         "read <id>",
 		Aliases:     []string{"get"},
 		Short:       "Get details of the store.",
+		Example:     "  game-goat-pp-cli stores read 1 --json",
 		Annotations: map[string]string{"pp:endpoint": "stores.read", "pp:method": "GET", "pp:path": "/stores/{id}", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

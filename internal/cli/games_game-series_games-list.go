@@ -20,6 +20,7 @@ func newGamesGameSeriesGamesListCmd(flags *rootFlags) *cobra.Command {
 		Use:         "games-list <game_pk>",
 		Aliases:     []string{"get"},
 		Short:       "Get a list of games that are part of the same series.",
+		Example:     "  game-goat-pp-cli games game-series games-list 3498 --json",
 		Annotations: map[string]string{"pp:endpoint": "game-series.games-list", "pp:method": "GET", "pp:path": "/games/{game_pk}/game-series", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

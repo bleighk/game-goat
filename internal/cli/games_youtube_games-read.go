@@ -17,6 +17,7 @@ func newGamesYoutubeGamesReadCmd(flags *rootFlags) *cobra.Command {
 		Use:         "games-read <id>",
 		Aliases:     []string{"get"},
 		Short:       "Get videos from YouTube associated with the game, available only for business and enterprise API users.",
+		Example:     "  game-goat-pp-cli games youtube games-read 3498 --json",
 		Annotations: map[string]string{"pp:endpoint": "youtube.games-read", "pp:method": "GET", "pp:path": "/games/{id}/youtube", "mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

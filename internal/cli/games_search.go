@@ -501,7 +501,7 @@ Pin a remake with --year, or fetch one game directly with --id.`,
 		Annotations: map[string]string{
 			"mcp:read-only":  "true",
 			"pp:data-source": "auto",
-			"pp:happy-args":  "query=Hollow Knight;--dry-run",
+			"pp:happy-args":  "query=Hollow Knight",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 && cmd.Flags().NFlag() == 0 {

@@ -121,12 +121,9 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 ```bash
 game-goat-pp-cli auth set-token
 
-
 game-goat-pp-cli games search "hollow knight" --json
 
-
 game-goat-pp-cli ratings "hollow knight" --json
-
 
 game-goat-pp-cli similar "hollow knight" --json
 
@@ -135,12 +132,10 @@ game-goat-pp-cli similar "hollow knight" --json
 ## Unique Features
 
 These capabilities aren't available in any other tool for this API.
-
 - **`similar`** — Games like <title>: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carries its tier and a reason.
 - **`retention`** — Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY).
 
 ## Recipes
-
 
 ### Games like one you loved
 

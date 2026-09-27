@@ -364,18 +364,6 @@ func boundCtx(parent context.Context, flags *rootFlags) (context.Context, contex
 	return context.WithTimeout(parent, flags.timeout)
 }
 
-// hasChangedLocalFlags checks Flag.Changed because Cobra's derived local flag
-// set does not populate the internal bookkeeping used by FlagSet.NFlag.
-func hasChangedLocalFlags(cmd *cobra.Command) bool {
-	changed := false
-	cmd.LocalNonPersistentFlags().VisitAll(func(flag *pflag.Flag) {
-		if flag.Changed {
-			changed = true
-		}
-	})
-	return changed
-}
-
 // parentNoSubcommandRunE returns a RunE that handles parents invoked without a
 // subcommand. A leftover positional means the user typed a token where a
 // subcommand was expected (a typo, an underscore instead of a hyphen, or a
@@ -720,12 +708,6 @@ func writeNoop(w io.Writer, flags *rootFlags, reason, prose string) error {
 	}
 	_, result.cause = fmt.Fprintln(w, prose)
 	return apiErr(result)
-}
-
-func successfulNoop(err error) bool {
-	var typed *cliError
-	var result *noopWriteError
-	return errors.As(err, &typed) && errors.As(typed.err, &result) && result.cause == nil
 }
 
 func writeAPIErrorEnvelope(w io.Writer, flags *rootFlags, err error, code int) {
@@ -2522,35 +2504,6 @@ func isDryRunResponse(dryRun bool, data json.RawMessage) bool {
 func isDryRunResponseForClient(c any, data json.RawMessage) bool {
 	dryRunClient, ok := c.(interface{ IsDryRun() bool })
 	return ok && isDryRunResponse(dryRunClient.IsDryRun(), data)
-}
-
-// handleBinaryResponseDelivery runs before the binary-response structured-output
-// refusal. Dry-run has no bytes to write; a file sink writes decoded bytes and
-// only then emits a receipt so stdout cannot claim success after a failed write.
-func handleBinaryResponseDelivery(cmd *cobra.Command, flags *rootFlags, data json.RawMessage) (bool, error) {
-	if flags != nil && isDryRunResponse(flags.dryRun, data) {
-		flags.deliverBuf = nil
-		if flags.quiet {
-			return true, nil
-		}
-		printDryRun := flags.asJSON || flags.agent || flags.csv || flags.compact || flags.plain || flags.selectFields != "" || !isTerminal(cmd.OutOrStdout())
-		if printDryRun {
-			return true, printOutputWithFlagsMeta(cmd.OutOrStdout(), data, flags, map[string]any{"source": "dry-run"})
-		}
-		return true, nil
-	}
-	if flags == nil || flags.deliverSink.Scheme != "file" {
-		return false, nil
-	}
-	raw, contentType := binaryDeliverPayload(data)
-	if err := Deliver(flags.deliverSink, raw, flags.compact); err != nil {
-		return true, err
-	}
-	flags.deliverBuf = nil
-	if flags.quiet {
-		return true, nil
-	}
-	return true, writeBinaryDeliverReceipt(cmd.OutOrStdout(), flags.deliverSink, raw, contentType)
 }
 
 func printOutputWithFlagsMeta(w io.Writer, data json.RawMessage, flags *rootFlags, agentMeta map[string]any, documentedFields ...map[string]bool) error {
