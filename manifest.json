@@ -1,0 +1,39 @@
+{
+  "manifest_version": "0.3",
+  "name": "game-goat-pp-mcp",
+  "display_name": "Rawg Video Games",
+  "version": "4.32.5",
+  "description": "Pick tonight's game and shrink the backlog - RAWG discovery plus a local decision-debt ledger that tells you what you will actually finish.",
+  "author": {
+    "name": "CLI Printing Press"
+  },
+  "license": "Apache-2.0",
+  "server": {
+    "type": "binary",
+    "entry_point": "bin/game-goat-pp-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/bin/game-goat-pp-mcp",
+      "args": [],
+      "env": {
+        "RAWG_API_KEY": "${user_config.rawg_api_key}"
+      }
+    }
+  },
+  "user_config": {
+    "rawg_api_key": {
+      "type": "string",
+      "title": "RAWG_API_KEY",
+      "description": "Sets RAWG_API_KEY for the Rawg Video Games MCP server. Get a credential from https://rawg.io/apidocs.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ]
+  }
+}

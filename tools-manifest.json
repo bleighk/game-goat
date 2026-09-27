@@ -1,0 +1,795 @@
+{
+  "api_name": "game-goat",
+  "base_url": "https://api.rawg.io/api",
+  "description": "Pick tonight's game and shrink the backlog - RAWG discovery plus a local decision-debt ledger that tells you what you will actually finish.",
+  "mcp_ready": "full",
+  "http_transport": "standard",
+  "auth": {
+    "type": "api_key",
+    "header": "key",
+    "in": "query",
+    "env_vars": [
+      "RAWG_API_KEY"
+    ],
+    "env_var_specs": [
+      {
+        "name": "RAWG_API_KEY",
+        "kind": "per_call",
+        "required": true,
+        "sensitive": true,
+        "inferred": true
+      }
+    ],
+    "key_url": "https://rawg.io/apidocs"
+  },
+  "required_headers": [],
+  "tools": [
+    {
+      "name": "creator-roles_list",
+      "description": "Get a list of creator positions (jobs). Optional: page, page_size. Returns array of Position.",
+      "method": "GET",
+      "path": "/creator-roles",
+      "params": [
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "creators_list",
+      "description": "Get a list of game creators. Optional: page, page_size. Returns array of Person.",
+      "method": "GET",
+      "path": "/creators",
+      "params": [
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "creators_read",
+      "description": "Get details of the creator. Required: id. Returns the PersonSingle.",
+      "method": "GET",
+      "path": "/creators/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "string",
+          "location": "path",
+          "description": "Id",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "developers_list",
+      "description": "Get a list of game developers. Optional: page, page_size. Returns array of Developer.",
+      "method": "GET",
+      "path": "/developers",
+      "params": [
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "developers_read",
+      "description": "Get details of the developer. Required: id. Returns the DeveloperSingle.",
+      "method": "GET",
+      "path": "/developers/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "A unique integer value identifying this Developer.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "games_list",
+      "description": "Get a list of games. Optional: page, page_size, search (plus 20 more). Returns array of Game.",
+      "method": "GET",
+      "path": "/games",
+      "params": [
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        },
+        {
+          "name": "search",
+          "type": "string",
+          "location": "query",
+          "description": "Search query."
+        },
+        {
+          "name": "search_precise",
+          "type": "bool",
+          "location": "query",
+          "description": "Disable fuzziness for the search query."
+        },
+        {
+          "name": "search_exact",
+          "type": "bool",
+          "location": "query",
+          "description": "Mark the search query as exact."
+        },
+        {
+          "name": "parent_platforms",
+          "type": "string",
+          "location": "query",
+          "description": "Filter by parent platforms, for example: `1,2,3`."
+        },
+        {
+          "name": "platforms",
+          "type": "string",
+          "location": "query",
+          "description": "Filter by platforms, for example: `4,5`."
+        },
+        {
+          "name": "stores",
+          "type": "string",
+          "location": "query",
+          "description": "Filter by stores, for example: `5,6`."
+        },
+        {
+          "name": "developers",
+          "type": "string",
+          "location": "query",
+          "description": "Filter by developers, for example: `1612,18893` or `valve-software,feral-interactive`."
+        },
+        {
+          "name": "publishers",
+          "type": "string",
+          "location": "query",
+          "description": "Filter by publishers, for example: `354,20987` or `electronic-arts,microsoft-studios`."
+        },
+        {
+          "name": "genres",
+          "type": "string",
+          "location": "query",
+          "description": "Filter by genres, for example: `4,51` or `action,indie`."
+        },
+        {
+          "name": "tags",
+          "type": "string",
+          "location": "query",
+          "description": "Filter by tags, for example: `31,7` or `singleplayer,multiplayer`."
+        },
+        {
+          "name": "creators",
+          "type": "string",
+          "location": "query",
+          "description": "Filter by creators, for example: `78,28` or `cris-velasco,mike-morasky`."
+        },
+        {
+          "name": "dates",
+          "type": "string",
+          "location": "query",
+          "description": "Filter by a release date, for example: `2010-01-01,2018-12-31.1960-01-01,1969-12-31`."
+        },
+        {
+          "name": "updated",
+          "type": "string",
+          "location": "query",
+          "description": "Filter by an update date, for example: `2020-12-01,2020-12-31`."
+        },
+        {
+          "name": "platforms_count",
+          "type": "int",
+          "location": "query",
+          "description": "Filter by platforms count, for example: `1`."
+        },
+        {
+          "name": "metacritic",
+          "type": "string",
+          "location": "query",
+          "description": "Filter by a metacritic rating, for example: `80,100`."
+        },
+        {
+          "name": "exclude_collection",
+          "type": "int",
+          "location": "query",
+          "description": "Exclude games from a particular collection, for example: `123`."
+        },
+        {
+          "name": "exclude_additions",
+          "type": "bool",
+          "location": "query",
+          "description": "Exclude additions."
+        },
+        {
+          "name": "exclude_parents",
+          "type": "bool",
+          "location": "query",
+          "description": "Exclude games which have additions."
+        },
+        {
+          "name": "exclude_game_series",
+          "type": "bool",
+          "location": "query",
+          "description": "Exclude games which included in a game series."
+        },
+        {
+          "name": "exclude_stores",
+          "type": "string",
+          "location": "query",
+          "description": "Exclude stores, for example: `5,6`."
+        },
+        {
+          "name": "ordering",
+          "type": "string",
+          "location": "query",
+          "description": "Available fields: `name`, `released`, `added`, `created`, `updated`, `rating`, `metacritic`. You can reverse the sort order adding a hyphen, for example: `-released`."
+        }
+      ]
+    },
+    {
+      "name": "games_read",
+      "description": "Get details of the game. Required: id. Returns the GameSingle.",
+      "method": "GET",
+      "path": "/games/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "string",
+          "location": "path",
+          "description": "An ID or a slug identifying this Game.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "games_achievements_games-read",
+      "description": "Get a list of game achievements. Required: id. Returns the ParentAchievement.",
+      "method": "GET",
+      "path": "/games/{id}/achievements",
+      "params": [
+        {
+          "name": "id",
+          "type": "string",
+          "location": "path",
+          "description": "An ID or a slug identifying this Game.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "games_additions_games-list",
+      "description": "Get a list of DLC's for the game, GOTY and other editions, companion apps, etc. Required: game_pk. Optional: page, page_size. Returns array of Game.",
+      "method": "GET",
+      "path": "/games/{game_pk}/additions",
+      "params": [
+        {
+          "name": "game_pk",
+          "type": "string",
+          "location": "path",
+          "description": "Game pk",
+          "required": true
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "games_development-team_games-list",
+      "description": "Get a list of individual creators that were part of the development team. Required: game_pk. Optional: ordering, page, page_size. Returns array of GamePersonList.",
+      "method": "GET",
+      "path": "/games/{game_pk}/development-team",
+      "params": [
+        {
+          "name": "game_pk",
+          "type": "string",
+          "location": "path",
+          "description": "Game pk",
+          "required": true
+        },
+        {
+          "name": "ordering",
+          "type": "string",
+          "location": "query",
+          "description": "Which field to use when ordering the results."
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "games_game-series_games-list",
+      "description": "Get a list of games that are part of the same series. Required: game_pk. Optional: page, page_size. Returns array of Game.",
+      "method": "GET",
+      "path": "/games/{game_pk}/game-series",
+      "params": [
+        {
+          "name": "game_pk",
+          "type": "string",
+          "location": "path",
+          "description": "Game pk",
+          "required": true
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "games_movies_games-read",
+      "description": "Get a list of game trailers. Required: id. Returns the Movie.",
+      "method": "GET",
+      "path": "/games/{id}/movies",
+      "params": [
+        {
+          "name": "id",
+          "type": "string",
+          "location": "path",
+          "description": "An ID or a slug identifying this Game.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "games_parent-games_games-list",
+      "description": "Get a list of parent games for DLC's and editions. Required: game_pk. Optional: page, page_size. Returns array of Game.",
+      "method": "GET",
+      "path": "/games/{game_pk}/parent-games",
+      "params": [
+        {
+          "name": "game_pk",
+          "type": "string",
+          "location": "path",
+          "description": "Game pk",
+          "required": true
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "games_reddit_games-read",
+      "description": "Get a list of most recent posts from the game's subreddit. Required: id. Returns the Reddit.",
+      "method": "GET",
+      "path": "/games/{id}/reddit",
+      "params": [
+        {
+          "name": "id",
+          "type": "string",
+          "location": "path",
+          "description": "An ID or a slug identifying this Game.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "games_screenshots_games-list",
+      "description": "Get screenshots for the game. Required: game_pk. Optional: ordering, page, page_size. Returns array of ScreenShot.",
+      "method": "GET",
+      "path": "/games/{game_pk}/screenshots",
+      "params": [
+        {
+          "name": "game_pk",
+          "type": "string",
+          "location": "path",
+          "description": "Game pk",
+          "required": true
+        },
+        {
+          "name": "ordering",
+          "type": "string",
+          "location": "query",
+          "description": "Which field to use when ordering the results."
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "games_stores_games-list",
+      "description": "Get links to the stores that sell the game. Required: game_pk. Optional: ordering, page, page_size. Returns array of GameStoreFull.",
+      "method": "GET",
+      "path": "/games/{game_pk}/stores",
+      "params": [
+        {
+          "name": "game_pk",
+          "type": "string",
+          "location": "path",
+          "description": "Game pk",
+          "required": true
+        },
+        {
+          "name": "ordering",
+          "type": "string",
+          "location": "query",
+          "description": "Which field to use when ordering the results."
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "games_suggested_games-read",
+      "description": "Get a list of visually similar games, available only for business and enterprise API users. Required: id. Returns the GameSingle.",
+      "method": "GET",
+      "path": "/games/{id}/suggested",
+      "params": [
+        {
+          "name": "id",
+          "type": "string",
+          "location": "path",
+          "description": "An ID or a slug identifying this Game.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "games_twitch_games-read",
+      "description": "Get streams on Twitch associated with the game, available only for business and enterprise API users. Required: id. Returns the Twitch.",
+      "method": "GET",
+      "path": "/games/{id}/twitch",
+      "params": [
+        {
+          "name": "id",
+          "type": "string",
+          "location": "path",
+          "description": "An ID or a slug identifying this Game.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "games_youtube_games-read",
+      "description": "Get videos from YouTube associated with the game, available only for business and enterprise API users. Required: id. Returns the Youtube.",
+      "method": "GET",
+      "path": "/games/{id}/youtube",
+      "params": [
+        {
+          "name": "id",
+          "type": "string",
+          "location": "path",
+          "description": "An ID or a slug identifying this Game.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "genres_list",
+      "description": "Get a list of video game genres. Optional: ordering, page, page_size. Returns array of Genre.",
+      "method": "GET",
+      "path": "/genres",
+      "params": [
+        {
+          "name": "ordering",
+          "type": "string",
+          "location": "query",
+          "description": "Which field to use when ordering the results."
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "genres_read",
+      "description": "Get details of the genre. Required: id. Returns the GenreSingle.",
+      "method": "GET",
+      "path": "/genres/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "A unique integer value identifying this Genre.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "platforms_list",
+      "description": "Get a list of video game platforms. Optional: ordering, page, page_size. Returns array of Platform.",
+      "method": "GET",
+      "path": "/platforms",
+      "params": [
+        {
+          "name": "ordering",
+          "type": "string",
+          "location": "query",
+          "description": "Which field to use when ordering the results."
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "platforms_lists-parents-list",
+      "description": "For instance, for PS2 and PS4 the “parent platform” is PlayStation. Optional: ordering, page, page_size. Returns array of PlatformParentSingle.",
+      "method": "GET",
+      "path": "/platforms/lists/parents",
+      "params": [
+        {
+          "name": "ordering",
+          "type": "string",
+          "location": "query",
+          "description": "Which field to use when ordering the results."
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "platforms_read",
+      "description": "Get details of the platform. Required: id. Returns the PlatformSingle.",
+      "method": "GET",
+      "path": "/platforms/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "A unique integer value identifying this Platform.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "publishers_list",
+      "description": "Get a list of video game publishers. Optional: page, page_size. Returns array of Publisher.",
+      "method": "GET",
+      "path": "/publishers",
+      "params": [
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "publishers_read",
+      "description": "Get details of the publisher. Required: id. Returns the PublisherSingle.",
+      "method": "GET",
+      "path": "/publishers/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "A unique integer value identifying this Publisher.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "stores_list",
+      "description": "Get a list of video game storefronts. Optional: ordering, page, page_size. Returns array of Store.",
+      "method": "GET",
+      "path": "/stores",
+      "params": [
+        {
+          "name": "ordering",
+          "type": "string",
+          "location": "query",
+          "description": "Which field to use when ordering the results."
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "stores_read",
+      "description": "Get details of the store. Required: id. Returns the StoreSingle.",
+      "method": "GET",
+      "path": "/stores/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "A unique integer value identifying this Store.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "tags_list",
+      "description": "Get a list of tags. Optional: page, page_size. Returns array of Tag.",
+      "method": "GET",
+      "path": "/tags",
+      "params": [
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "A page number within the paginated result set."
+        },
+        {
+          "name": "page_size",
+          "type": "int",
+          "location": "query",
+          "description": "Number of results to return per page."
+        }
+      ]
+    },
+    {
+      "name": "tags_read",
+      "description": "Get details of the tag. Required: id. Returns the TagSingle.",
+      "method": "GET",
+      "path": "/tags/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "A unique integer value identifying this Tag.",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "novel_features": [
+    {
+      "name": "",
+      "command": "backlog audit",
+      "description": "Decision-debt audit of your local backlog: unplayed %, median shelf-time, status ratios, plus stale, sunk-cost, and drop-candidate rows with follow-up recommendations."
+    },
+    {
+      "name": "",
+      "command": "finishline",
+      "description": "Finish-rate dashboard over your backlog: finished %, monthly completion rate, months-to-zero-backlog projection, and 10% milestone checkpoints naming the next game to finish."
+    },
+    {
+      "name": "",
+      "command": "radar",
+      "description": "Upcoming releases from the next 90 days scored by genre overlap with your backlog-derived taste profile (needs RAWG_API_KEY; degrades to plain recency without it)."
+    },
+    {
+      "name": "",
+      "command": "retention",
+      "description": "Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY)."
+    },
+    {
+      "name": "",
+      "command": "moods list",
+      "description": "List the curated mood names that tonight --mood accepts, with their genre/tag clusters."
+    }
+  ]
+}
