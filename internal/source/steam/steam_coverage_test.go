@@ -12,16 +12,19 @@ import (
 	"time"
 )
 
-func TestResolveAppIDFallsBackToFirstAppTypedItem(t *testing.T) {
+func TestResolveAppIDRejectsNonExactMatch(t *testing.T) {
 	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		// Near-identical editions must NOT resolve: the first app-typed
+		// item is a different edition, and presenting its reviews and
+		// price as the requested game's is worse than no Steam data.
 		fmt.Fprint(w, `{"total":1,"items":[{"type":"dlc","name":"Elden Ring DLC","id":1},{"type":"app","name":"ELDEN RING - Deluxe","id":1245690}]}`)
 	})
-	id, err := c.ResolveAppID(context.Background(), "Elden Ring")
-	if err != nil {
-		t.Fatalf("ResolveAppID: %v", err)
+	_, err := c.ResolveAppID(context.Background(), "Elden Ring")
+	if !errors.Is(err, ErrAppNotFound) {
+		t.Fatalf("ResolveAppID error = %v, want ErrAppNotFound", err)
 	}
-	if id != 1245690 {
-		t.Errorf("ResolveAppID = %d, want first app-typed fallback 1245690", id)
+	if !strings.Contains(err.Error(), "no exact store match") {
+		t.Errorf("error = %v, want it to name the strict-match reason", err)
 	}
 }
 

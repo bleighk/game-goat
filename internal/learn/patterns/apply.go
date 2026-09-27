@@ -261,8 +261,8 @@ func verifyCandidate(ctx context.Context, db *sql.DB, candidate, resourceType, s
 		}
 		var got string
 		err := db.QueryRowContext(ctx,
-			`SELECT id FROM resources WHERE resource_type = ? AND id LIKE ? LIMIT 1`,
-			resourceType, prefix+"%",
+			`SELECT id FROM resources WHERE resource_type = ? AND id LIKE ? ESCAPE '\' LIMIT 1`,
+			resourceType, escapeLikePrefix(prefix)+"%",
 		).Scan(&got)
 		if err != nil {
 			return Hit{}, false
@@ -272,6 +272,14 @@ func verifyCandidate(ctx context.Context, db *sql.DB, candidate, resourceType, s
 	default:
 		return Hit{}, false
 	}
+}
+
+// escapeLikePrefix escapes SQL LIKE wildcards in a taught lookup value so
+// a literal "%" or "_" in the value cannot broaden the prefix search to
+// unrelated resource ids.
+func escapeLikePrefix(s string) string {
+	r := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
+	return r.Replace(s)
 }
 
 func nonPlaceholderTokens(in []string) []string {

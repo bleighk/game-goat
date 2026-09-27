@@ -193,13 +193,18 @@ var reservedStructuredArgs = map[string]bool{
 
 // MCP runs commands as the server account. Letting clients choose filesystem
 // destinations would let a tool write or truncate anything that account can
-// reach.
+// reach, and file-input flags would let a tool read any file that account
+// can read and replay it later via recall. Content-bearing flags (--notes,
+// --playbook-json) remain the MCP-safe way to pass this data.
 var blockedDestinationFlags = map[string]bool{
-	"audit-dir":    true,
-	"db":           true,
-	"o":            true,
-	"output":       true,
-	"receipt-file": true,
+	"audit-dir":           true,
+	"db":                  true,
+	"notes-file":          true,
+	"o":                   true,
+	"output":              true,
+	"playbook-file":       true,
+	"playbook-notes-file": true,
+	"receipt-file":        true,
 }
 
 // blockedRootFlags are root-level CLI flags that an MCP client must not be

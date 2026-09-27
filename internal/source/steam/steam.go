@@ -101,12 +101,10 @@ func (c *Client) ResolveAppID(ctx context.Context, title string) (int64, error) 
 			return item.ID, nil
 		}
 	}
-	for _, item := range resp.Items {
-		if item.Type == "app" && item.ID > 0 {
-			return item.ID, nil
-		}
-	}
-	return 0, fmt.Errorf("%w: %q", ErrAppNotFound, title)
+	// No exact store match: never guess. The first app can be a different
+	// edition or a similarly named game; presenting its reviews and price
+	// as the requested game's is worse than reporting no Steam data.
+	return 0, fmt.Errorf("%w: %q (no exact store match among %d results)", ErrAppNotFound, title, len(resp.Items))
 }
 
 // ReviewSummary is the keyless appreviews rollup for one app. Score is

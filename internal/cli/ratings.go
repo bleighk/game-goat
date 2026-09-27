@@ -30,6 +30,15 @@ func resolveTitleForMultiSource(ctx context.Context, cmd *cobra.Command, c *clie
 		return rawgGame{}, nil, err
 	}
 	if len(exact) == 0 {
+		// A pinned --year is a hard constraint: never resolve to a search
+		// hit from a different release year. Filter the ranked hits to the
+		// requested year first; only a year-matching hit can resolve.
+		if year != "" {
+			ranked = filterByReleaseYear(ranked, year)
+			if len(ranked) == 0 {
+				return rawgGame{}, nil, notFoundErr(fmt.Errorf("no game titled %q released in %s in the top RAWG search results; drop --year to resolve across years, or use a RAWG id", title, year))
+			}
+		}
 		// No normalized exact match: fall back to the top-ranked search hit
 		// with an explicit notice. Users type partial titles ("the witcher
 		// 3") whose full form is the obvious #1 search result; refusing
@@ -58,10 +67,14 @@ func resolveTitleForMultiSource(ctx context.Context, cmd *cobra.Command, c *clie
 	// Single exact match that is obscure while a franchise continuation
 	// dominates it on community data: the user typed a franchise name
 	// ("halo", "zelda") and RAWG's exact hit is a junk same-named title.
-	if best, ok := franchiseOverride(exact[0], ranked, title); ok {
-		fmt.Fprintf(cmd.ErrOrStderr(), "resolved %q to %q (franchise entry, strongest community data); an obscure game titled %q also exists — pass the full title, --year, or a RAWG id to pin it\n",
-			title, best.Name, exact[0].Name)
-		return best, nil, nil
+	// Skipped when --year is pinned: the override crosses release years,
+	// and a pinned year means the user already chose the release.
+	if year == "" {
+		if best, ok := franchiseOverride(exact[0], ranked, title); ok {
+			fmt.Fprintf(cmd.ErrOrStderr(), "resolved %q to %q (franchise entry, strongest community data); an obscure game titled %q also exists — pass the full title, --year, or a RAWG id to pin it\n",
+				title, best.Name, exact[0].Name)
+			return best, nil, nil
+		}
 	}
 	return exact[0], candidates, nil
 }

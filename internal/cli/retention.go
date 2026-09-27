@@ -31,6 +31,8 @@ type retentionStats struct {
 	DroppedPct       float64 `json:"dropped_pct"`
 	PlayingPct       float64 `json:"playing_pct"`
 	YetPct           float64 `json:"yet_pct"`
+	OwnedPct         float64 `json:"owned_pct"`
+	ToplayPct        float64 `json:"toplay_pct"`
 	AspirationalTrap bool    `json:"aspirational_trap"`
 	Verdict          string  `json:"verdict"`
 }
@@ -57,6 +59,8 @@ func computeRetentionStats(counts map[string]int) retentionStats {
 		st.DroppedPct = float64(st.Dropped) / float64(st.Total) * 100
 		st.PlayingPct = float64(st.Playing) / float64(st.Total) * 100
 		st.YetPct = float64(st.Yet) / float64(st.Total) * 100
+		st.OwnedPct = float64(st.Owned) / float64(st.Total) * 100
+		st.ToplayPct = float64(st.Toplay) / float64(st.Total) * 100
 	}
 	st.AspirationalTrap = (st.Yet+st.Toplay) > st.Beaten && st.Total > 0
 	switch {
@@ -85,8 +89,8 @@ func retentionStatusRows(st retentionStats) []map[string]any {
 		{"yet", st.Yet, st.YetPct},
 		{"dropped", st.Dropped, st.DroppedPct},
 		{"playing", st.Playing, st.PlayingPct},
-		{"owned", st.Owned, 0},
-		{"toplay", st.Toplay, 0},
+		{"owned", st.Owned, st.OwnedPct},
+		{"toplay", st.Toplay, st.ToplayPct},
 	}
 	rows := make([]map[string]any, 0, len(all))
 	for _, s := range all {

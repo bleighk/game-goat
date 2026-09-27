@@ -1241,3 +1241,15 @@ func toolResultContentText(result *mcplib.CallToolResult, index int) string {
 	}
 	return text.Text
 }
+
+// TestBlockedDestinationFlagsCoverFileInputs: file-reading flags are as
+// dangerous as file-writing flags under MCP — a tool run as the server
+// account could read and later replay (via recall) any server-local file
+// named through them, so they must sit in blockedDestinationFlags.
+func TestBlockedDestinationFlagsCoverFileInputs(t *testing.T) {
+	for _, flag := range []string{"notes-file", "playbook-file", "playbook-notes-file"} {
+		if !blockedDestinationFlags[flag] {
+			t.Errorf("blockedDestinationFlags must block file-input flag %q", flag)
+		}
+	}
+}

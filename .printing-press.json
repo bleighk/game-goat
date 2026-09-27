@@ -31,12 +31,12 @@
   "auth_key_url": "https://rawg.io/apidocs",
   "novel_features": [
     {
-      "name": "",
+      "name": "Similar Games",
       "command": "similar",
-      "description": "Games like \u003ctitle\u003e: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carries its tier and a reason."
+      "description": "Games like <title>: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carries its tier and a reason."
     },
     {
-      "name": "",
+      "name": "Retention Verdict",
       "command": "retention",
       "description": "Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY)."
     }
