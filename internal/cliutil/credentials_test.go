@@ -13,9 +13,9 @@ import (
 	"sync"
 	"testing"
 
-	"game-goat-pp-cli/internal/cliutil"
-	"game-goat-pp-cli/internal/cliutil/testenv"
-	"game-goat-pp-cli/internal/config"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil/testenv"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/config"
 	"github.com/pelletier/go-toml/v2"
 )
 

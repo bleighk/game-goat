@@ -31,6 +31,11 @@ type Credentials struct {
 	ClientID      string    `toml:"client_id"`
 	ClientSecret  string    `toml:"client_secret"`
 	RawgApiKey    string    `toml:"api_key"`
+	// PATCH(amend-2026-09-28: ITAD key stored in credentials.toml)
+	// ITADApiKey is the IsThereAnyDeal API key used by prices/price-history.
+	// It shares credentials.toml with api_key, so it is stored once, inherits
+	// the same 0600 permission guard, and never needs a per-shell export.
+	ITADApiKey string `toml:"itad_api_key"`
 }
 
 // CredentialsPermissionError means the credentials bytes were published but
@@ -241,7 +246,8 @@ func (c *Credentials) HasValues() bool {
 		c.RefreshToken != "" ||
 		c.ClientID != "" ||
 		c.ClientSecret != "" ||
-		c.RawgApiKey != ""
+		c.RawgApiKey != "" ||
+		c.ITADApiKey != ""
 }
 
 func credentialsFileHasValues(path string) bool {
@@ -286,6 +292,13 @@ func SaveCredentials(creds *Credentials) error {
 	if err != nil {
 		return err
 	}
+	return saveCredentialsToPath(path, creds)
+}
+
+// saveCredentialsToPath writes creds atomically and verifies the landed file's
+// permissions. Split out so callers resolving an explicit --config sibling
+// path reuse the same 0600 guard.
+func saveCredentialsToPath(path string, creds *Credentials) error {
 	data, err := toml.Marshal(credentialsFileFrom(creds)) // #nosec G117 -- credentials are intentionally persisted to a 0600 private file.
 	if err != nil {
 		return fmt.Errorf("marshaling credentials: %w", err)
@@ -299,6 +312,239 @@ func SaveCredentials(creds *Credentials) error {
 	}
 	if err := VerifyCredsPerms(real); err != nil {
 		return &CredentialsPermissionError{Path: path, Err: err}
+	}
+	return nil
+}
+
+// LoadITADCredential returns the stored IsThereAnyDeal API key, if any. The key
+// shares credentials.toml with the primary api_key, so it is stored once,
+// inherits the 0600 permission guard, and never needs a per-shell export.
+func LoadITADCredential() (string, bool, error) {
+	return LoadITADCredentialAt("")
+}
+
+// LoadITADCredentialForConfig is LoadITADCredential pinned to an explicit
+// --config sibling credentials file.
+func LoadITADCredentialForConfig(configPath string) (string, bool, error) {
+	path, err := credentialsPathForConfig(configPath)
+	if err != nil {
+		return "", false, err
+	}
+	return LoadITADCredentialAt(path)
+}
+
+// LoadITADKeyQuiet reads the itad_api_key from an explicit path without the
+// parse/read warnings the primary loader emits. Config load uses it so reading a
+// sibling credentials file never adds stderr noise about an unrelated corrupt or
+// legacy file. Missing, unreadable, or over-permissive files yield no key.
+func LoadITADKeyQuiet(path string) (string, bool) {
+	if strings.TrimSpace(path) == "" {
+		return "", false
+	}
+	real, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		return "", false
+	}
+	if VerifyCredsPerms(real) != nil {
+		return "", false
+	}
+	data, err := os.ReadFile(filepath.Clean(path)) // #nosec G304 -- app-owned credentials path from the resolved config home.
+	if err != nil {
+		return "", false
+	}
+	var creds Credentials
+	if err := toml.Unmarshal(data, &creds); err != nil {
+		return "", false
+	}
+	key := strings.TrimSpace(creds.ITADApiKey)
+	return key, key != ""
+}
+
+// LoadITADCredentialAt reads the ITAD key from an explicit credentials path (an
+// empty path uses the default). Callers pass the path the config actually
+// resolved so a selected home is never bypassed for the default one.
+func LoadITADCredentialAt(path string) (string, bool, error) {
+	creds, status, err := loadCredentialsAtWithStatus(path)
+	if err != nil {
+		return "", false, err
+	}
+	if status.Refusal != nil {
+		return "", false, *status.Refusal
+	}
+	if creds == nil {
+		return "", false, nil
+	}
+	key := strings.TrimSpace(creds.ITADApiKey)
+	return key, key != "", nil
+}
+
+// SaveITADCredential persists the IsThereAnyDeal API key alongside any sibling
+// credentials already present (e.g. the RAWG api_key), which it never drops.
+func SaveITADCredential(key string) error {
+	return SaveITADCredentialAt("", key)
+}
+
+// SaveITADCredentialForConfig is SaveITADCredential pinned to an explicit
+// --config sibling credentials file.
+func SaveITADCredentialForConfig(configPath, key string) error {
+	path, err := credentialsPathForConfig(configPath)
+	if err != nil {
+		return err
+	}
+	return SaveITADCredentialAt(path, key)
+}
+
+// SaveITADCredentialAt writes the ITAD key to an explicit credentials path (an
+// empty path uses the default), preserving any sibling fields there.
+func SaveITADCredentialAt(path, key string) error {
+	creds, err := loadCredentialsAtForWrite(path)
+	if err != nil {
+		return err
+	}
+	creds.ITADApiKey = strings.TrimSpace(key)
+	return SaveCredentialsAt(path, creds)
+}
+
+// ClearITADCredential removes the stored IsThereAnyDeal API key, leaving the
+// other credential fields (e.g. the RAWG api_key) untouched.
+func ClearITADCredential() error {
+	return ClearITADCredentialAt("")
+}
+
+// ClearITADCredentialForConfig is ClearITADCredential pinned to an explicit
+// --config sibling credentials file.
+func ClearITADCredentialForConfig(configPath string) error {
+	path, err := credentialsPathForConfig(configPath)
+	if err != nil {
+		return err
+	}
+	return ClearITADCredentialAt(path)
+}
+
+// ClearITADCredentialAt removes the ITAD key from an explicit credentials path
+// (an empty path uses the default), leaving sibling fields intact.
+func ClearITADCredentialAt(path string) error {
+	creds, err := loadCredentialsAtForWrite(path)
+	if err != nil {
+		return err
+	}
+	if creds.ITADApiKey == "" {
+		return nil
+	}
+	creds.ITADApiKey = ""
+	if !creds.HasValues() {
+		return RemoveCredentialsAt(path)
+	}
+	return SaveCredentialsAt(path, creds)
+}
+
+// credentialsPathForConfig resolves the credentials file for an explicit
+// --config path (its sibling data dir) or the default data dir when empty.
+func credentialsPathForConfig(configPath string) (string, error) {
+	if strings.TrimSpace(configPath) == "" {
+		return CredentialsFilePath()
+	}
+	return CredentialsFilePathForConfig(configPath)
+}
+
+// loadCredentialsAtWithStatus reads an explicit credentials path (an empty path
+// uses the default soft-miss loader).
+func loadCredentialsAtWithStatus(path string) (*Credentials, CredentialLoadStatus, error) {
+	if strings.TrimSpace(path) == "" {
+		return LoadCredentialsWithStatus()
+	}
+	return loadCredentialsWithStatus(path, true)
+}
+
+// loadCredentialsAtForWrite reads an explicit credentials path for a
+// read-modify-write, never returning a present-but-refused file as empty.
+func loadCredentialsAtForWrite(path string) (*Credentials, error) {
+	creds, status, err := loadCredentialsAtWithStatus(path)
+	if err != nil {
+		return nil, err
+	}
+	// PATCH(amend-2026-09-28: never overwrite a refused credentials file)
+	if status.Refusal != nil {
+		return nil, *status.Refusal
+	}
+	if creds == nil {
+		creds = &Credentials{}
+	}
+	return creds, nil
+}
+
+func loadCredentialsForReadWithStatus(configPath string) (*Credentials, CredentialLoadStatus, error) {
+	if strings.TrimSpace(configPath) != "" {
+		return LoadCredentialsForConfigWithStatus(configPath)
+	}
+	return LoadCredentialsWithStatus()
+}
+
+func loadCredentialsForRead(configPath string) (*Credentials, bool, error) {
+	creds, status, err := loadCredentialsForReadWithStatus(configPath)
+	return creds, status.Loaded, err
+}
+
+func loadCredentialsForWrite(configPath string) (*Credentials, error) {
+	creds, status, err := loadCredentialsForReadWithStatus(configPath)
+	if err != nil {
+		return nil, err
+	}
+	// PATCH(amend-2026-09-28: never overwrite a refused credentials file)
+	// A file refused for unsafe permissions is present but unread; writing a
+	// fresh one would silently discard the credentials it holds instead of
+	// asking the user to fix the permissions.
+	if status.Refusal != nil {
+		return nil, *status.Refusal
+	}
+	if creds == nil {
+		creds = &Credentials{}
+	}
+	return creds, nil
+}
+
+func saveCredentialsForConfig(configPath string, creds *Credentials) error {
+	if strings.TrimSpace(configPath) == "" {
+		return SaveCredentials(creds)
+	}
+	path, err := CredentialsFilePathForConfig(configPath)
+	if err != nil {
+		return err
+	}
+	return saveCredentialsToPath(path, creds)
+}
+
+func removeCredentialsForConfig(configPath string) error {
+	if strings.TrimSpace(configPath) == "" {
+		return RemoveCredentials()
+	}
+	path, err := CredentialsFilePathForConfig(configPath)
+	if err != nil {
+		return err
+	}
+	return RemoveCredentialsAt(path)
+}
+
+// SaveCredentialsAt writes creds to an explicit credentials path (an empty path
+// falls back to the default), reusing the 0600 permission guard. It lets a
+// --config-selected home keep its credentials beside its config instead of
+// writing into the default data dir.
+func SaveCredentialsAt(path string, creds *Credentials) error {
+	if strings.TrimSpace(path) == "" {
+		return SaveCredentials(creds)
+	}
+	return saveCredentialsToPath(path, creds)
+}
+
+// RemoveCredentialsAt removes an explicit credentials path (an empty path falls
+// back to the default), so a provider-specific clear never deletes a file in a
+// different home than the one it read.
+func RemoveCredentialsAt(path string) error {
+	if strings.TrimSpace(path) == "" {
+		return RemoveCredentials()
+	}
+	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("removing credentials: %w", err)
 	}
 	return nil
 }

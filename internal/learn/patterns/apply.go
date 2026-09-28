@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"game-goat-pp-cli/internal/learn/lookups"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn/lookups"
 )
 
 // DefaultJaccardMin matches the recall-side floor. Applying the same

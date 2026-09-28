@@ -1,6 +1,6 @@
 # Game Goat CLI
 
-**Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents.**
+**Look up any game and find what to play next - RAWG search, ratings, franchise order, tag-matched recommendations with remake-aware title resolution, plus IsThereAnyDeal historical price tracking and currency-localised storefront prices, built for agents.**
 
 ## Install
 
@@ -121,6 +121,9 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 ```bash
 game-goat-pp-cli auth set-token
 
+# optional: store an IsThereAnyDeal key for prices/price-history
+echo "$ITAD_API_KEY" | game-goat-pp-cli auth set-token --provider itad
+
 game-goat-pp-cli games search "hollow knight" --json
 
 game-goat-pp-cli ratings "hollow knight" --json
@@ -129,6 +132,10 @@ game-goat-pp-cli ratings 3498 --json
 
 game-goat-pp-cli similar "hollow knight" --json
 
+game-goat-pp-cli price-history "hollow knight" --json
+
+game-goat-pp-cli prices "hollow knight" --country GB --json
+
 ```
 
 ## Unique Features
@@ -136,6 +143,8 @@ game-goat-pp-cli similar "hollow knight" --json
 These capabilities aren't available in any other tool for this API.
 - **`similar`** — Games like <title>: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carries its tier and a reason.
 - **`retention`** — Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY).
+- **`price-history`** — Historical price tracking for one game: all-time / 1-year / 3-month lows, the current best storefront price, a dated change log, and a buy-now verdict, localised to a --country currency (needs ITAD_API_KEY).
+- **`prices`** — Current prices across storefronts, cheapest first, with a --deals-only filter and the all-time low for context, localised to a --country currency (needs ITAD_API_KEY).
 
 ## Recipes
 
@@ -164,6 +173,22 @@ A pinned `--year` is a hard constraint on the title too: if no game with that ex
 ```bash
 game-goat-pp-cli retention "elden ring" --json
 ```
+
+### Is now the cheapest it has ever been?
+
+```bash
+game-goat-pp-cli price-history "elden ring" --json
+```
+
+Historical lows (all-time, 1 year, 3 months), the current best storefront price, and a dated change log. Prices are localised to `--country` (ISO 3166-1 alpha-2; default `ITAD_COUNTRY` or US), so `--country GB` returns GBP. Requires an IsThereAnyDeal key — the `ITAD_API_KEY` env var or one stored via `auth set-token --provider itad`; get a free key at https://isthereanydeal.com/apps/.
+
+### What does it cost where I live?
+
+```bash
+game-goat-pp-cli prices "elden ring" --country GB --deals-only --json
+```
+
+Current price at every storefront, cheapest first, plus the all-time low for context. `--deals-only` keeps just active discounts; `--limit` caps the rows.
 
 ## Usage
 

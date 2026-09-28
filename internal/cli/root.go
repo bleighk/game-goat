@@ -14,12 +14,12 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"game-goat-pp-cli/internal/client"
-	"game-goat-pp-cli/internal/cliutil"
-	"game-goat-pp-cli/internal/config"
-	"game-goat-pp-cli/internal/learn"
-	"game-goat-pp-cli/internal/platform"
-	"game-goat-pp-cli/internal/store"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/client"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/config"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/platform"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -296,12 +296,14 @@ func isCobraUsageError(err error) bool {
 func newRootCmd(flags *rootFlags) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "game-goat-pp-cli",
-		Short: `Game Goat CLI — Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations…`,
-		Long: `Game Goat CLI — Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents.
+		Short: `Game Goat CLI — Look up any game and find what to play next - RAWG search, ratings, franchise order, tag-matched recommendations, plus IsThereAnyDeal price history and storefront prices…`,
+		Long: `Game Goat CLI — Look up any game and find what to play next - RAWG search, ratings, franchise order, tag-matched recommendations with remake-aware title resolution, plus IsThereAnyDeal historical price tracking and currency-localised storefront prices, built for agents.
 
 Highlights (not in the official API docs):
   • similar   Games like <title>: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carr…
   • retention   Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY).
+  • prices   Current prices across storefronts, cheapest first, with a --deals-only filter and the all-time low for context, localised to a --country currency (needs an ITAD key).
+  • price-history   Historical price tracking: all-time / 1-year / 3-month lows, the current best storefront price, a dated change log, and a buy-now verdict, localised to a --country currency (needs an ITAD key).
 
 Agent mode: add --agent to any command for JSON output + non-interactive mode.
 Health check: run 'game-goat-pp-cli doctor' to verify auth and connectivity.

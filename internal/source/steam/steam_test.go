@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"game-goat-pp-cli/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
 )
 
 // newTestClient wires a Client at an httptest server with a tiny retryWait

@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"testing"
 
-	"game-goat-pp-cli/internal/cliutil/testenv"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil/testenv"
 )
 
 func resetPathEnv(t *testing.T) string {

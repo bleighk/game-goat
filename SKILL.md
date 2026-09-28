@@ -1,6 +1,6 @@
 ---
 name: pp-game-goat
-description: "Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents."
+description: "Look up any game and find what to play next - RAWG search, ratings, franchise order, tag-matched recommendations with remake-aware title resolution, plus IsThereAnyDeal historical price tracking and currency-localised storefront prices, built for agents."
 author: "Brad Knight"
 license: "Apache-2.0"
 argument-hint: "<command> [args] | install cli|mcp"
@@ -42,6 +42,7 @@ If `--version` reports "command not found" after install, the runtime cannot see
 - Keyless Steam enrichment: review scores and player counts joined into rating cards.
 - Remake-aware title resolution: shared names (DOOM 1993 vs 2016, franchise shorthand like "halo") resolve with a notice on stderr and meta.ambiguous in JSON; pin with --year or a RAWG id.
 - One free RAWG API key powers live commands (see Auth Setup); local search over synced data works offline.
+- IsThereAnyDeal historical and current price tracking (needs ITAD_API_KEY): all-time / 1-year / 3-month lows, a dated change log, and per-storefront current prices, localised to a --country currency.
 
 ### Terms of Use
 - Free for personal use as long as you attribute RAWG as the source of the data and/or images and add an active
@@ -59,13 +60,15 @@ __[Read more](https://rawg.io/apidocs)__.
 
 ## When Not to Use This CLI
 
-Do not activate this CLI for requests that require creating, updating, deleting, publishing, commenting, upvoting, inviting, ordering, sending messages, booking, purchasing, or changing remote state. Also do not use it for game news, esports schedules, purchasing or checkout, price or deal tracking, or running/emulating games — RAWG (Video Games Database) exposes none of these. This printed CLI exposes read-only commands against the API for inspection, export, sync, and analysis.
+Do not activate this CLI for requests that require creating, updating, deleting, publishing, commenting, upvoting, inviting, ordering, sending messages, booking, purchasing, or changing remote state. Also do not use it for game news, esports schedules, purchasing or checkout, or running/emulating games — RAWG (Video Games Database) exposes none of these, and this CLI never buys anything. It does read prices: `price-history` and `prices` pull historical and current storefront prices from IsThereAnyDeal (read-only, requires ITAD_API_KEY). This printed CLI exposes read-only commands against the API for inspection, export, sync, and analysis.
 
 ## Unique Capabilities
 
 These capabilities aren't available in any other tool for this API.
 - **`similar`** — Games like <title>: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carries its tier and a reason.
 - **`retention`** — Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY).
+- **`price-history`** — Historical price tracking for one game: all-time / 1-year / 3-month lows, the current best storefront price, a dated change log, and a buy-now verdict, localised to a --country currency (needs ITAD_API_KEY).
+- **`prices`** — Current prices across storefronts, cheapest first, with a --deals-only filter and the all-time low for context, localised to a --country currency (needs ITAD_API_KEY).
 
 ## Command Reference
 
@@ -130,6 +133,11 @@ These capabilities aren't available in any other tool for this API.
 - `game-goat-pp-cli series <title>` — franchise play order by release date, anchor included (title or bare RAWG id).
 - `game-goat-pp-cli similar <title>` — tiered recommendations: same studio (capped), defining gameplay tag, then shared genres; each row carries `tier` and `reason` (title or bare RAWG id).
 
+**prices — IsThereAnyDeal history and storefront prices**
+
+- `game-goat-pp-cli price-history <title>` — all-time / 1-year / 3-month lows, the current best price, a dated change log, and a buy-now verdict; prices localised by `--country` (needs ITAD_API_KEY).
+- `game-goat-pp-cli prices <title>` — current prices across storefronts, cheapest first, with `--deals-only` and `--limit`; localised by `--country` (needs ITAD_API_KEY).
+
 **framework**
 
 - `sync`, `search`, `analytics` — local SQLite mirror and offline search; `tail` polls the live API; `export` streams live API data to a file.
@@ -174,6 +182,22 @@ A pinned `--year` is a hard constraint on the title too: if no game with that ex
 game-goat-pp-cli retention "elden ring" --json
 ```
 
+### Is now the cheapest it has ever been?
+
+```bash
+game-goat-pp-cli price-history "elden ring" --json
+```
+
+Historical lows (all-time, 1 year, 3 months), the current best storefront price, and a dated change log. Prices are localised to `--country` (ISO 3166-1 alpha-2; default `ITAD_COUNTRY` or US), so `--country GB` returns GBP. Requires an IsThereAnyDeal key — the `ITAD_API_KEY` env var or one stored via `auth set-token --provider itad`; get a free key at https://isthereanydeal.com/apps/.
+
+### What does it cost where I live?
+
+```bash
+game-goat-pp-cli prices "elden ring" --country GB --deals-only --json
+```
+
+Current price at every storefront, cheapest first, plus the all-time low for context. `--deals-only` keeps just active discounts; `--limit` caps the rows.
+
 ## Auth Setup
 Run `game-goat-pp-cli auth setup` to print the URL and steps for getting a key (add `--launch` to open the URL). Then set:
 
@@ -181,6 +205,17 @@ Run `game-goat-pp-cli auth setup` to print the URL and steps for getting a key (
 export RAWG_API_KEY="<your-key>"
 ```
 To persist credentials, use `echo "$TOKEN" | game-goat-pp-cli auth set-token`. Stored secrets live in `credentials.toml` under the data dir, not in `config.toml`.
+
+### IsThereAnyDeal price data (optional)
+
+`price-history` and `prices` read from IsThereAnyDeal and need their own free API key, independent of the RAWG key. Store it once (recommended) or export it per shell:
+
+```bash
+echo "$ITAD_API_KEY" | game-goat-pp-cli auth set-token --provider itad   # writes credentials.toml (0600)
+# or: export ITAD_API_KEY="<your-key>"
+```
+
+Create a key at https://isthereanydeal.com/apps/. Prices are returned in the currency of the selected storefront country: pass `--country <ISO-3166-1>` (e.g. `GB`, `DE`) or set `ITAD_COUNTRY` for a default; without either, US/USD is used. A missing key surfaces as exit code 4 with setup guidance, not an upstream error.
 
 Run `game-goat-pp-cli doctor` to verify setup.
 

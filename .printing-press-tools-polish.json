@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-09-27T12:42:06.540006611Z",
+  "cli_dir": "\u003ccli-dir\u003e/game-goat",
+  "findings": [
+    {
+      "kind": "thin-short",
+      "command": "list",
+      "file": "platform_client.go",
+      "line": 517,
+      "evidence": "List client profiles",
+      "status": "accepted",
+      "note": "DO-NOT-EDIT generated file; needs generator-template fix. Also accurate-but-brief: the command lists saved local client-profile names in JSON. Retro candidate: template Short for platform client list should name what is listed and in what shape."
+    },
+    {
+      "kind": "thin-short",
+      "command": "list",
+      "file": "teach.go",
+      "line": 868,
+      "evidence": "List recorded learnings",
+      "status": "accepted",
+      "note": "DO-NOT-EDIT generated file; needs generator-template fix. Brief but precise: lists learnings recorded from teach sessions, filterable by --agent/--query/--warnings. Retro candidate: learn-surface template Shorts should carry one qualifying clause."
+    }
+  ],
+  "scorecard_before": {
+    "mcp_description_quality": 10,
+    "captured": "2026-09-27T08:35:23.574566737Z"
+  }
+}

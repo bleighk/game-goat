@@ -28,12 +28,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"game-goat-pp-cli/internal/cliutil"
-	"game-goat-pp-cli/internal/learn"
-	"game-goat-pp-cli/internal/learn/entities"
-	"game-goat-pp-cli/internal/learn/lookups"
-	"game-goat-pp-cli/internal/learn/patterns"
-	"game-goat-pp-cli/internal/store"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn/entities"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn/lookups"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn/patterns"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 )
 
 // noLearnEnvVar is the environment variable that disables the learning

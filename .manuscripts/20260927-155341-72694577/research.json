@@ -1,0 +1,142 @@
+{
+  "api_name": "RAWG Video Games Database",
+  "novelty_score": 0,
+  "alternatives": [
+    {
+      "name": "movie-goat-pp-cli",
+      "url": "https://github.com/mvanhorn/printing-press-library",
+      "language": "",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "mcp-rawg (pipeworx-io)",
+      "url": "https://github.com/pipeworx-io/mcp-rawg",
+      "language": "",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "Depressurizer",
+      "url": "https://github.com/Depressurizer/Depressurizer",
+      "language": "",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "shouldiplay",
+      "url": "https://github.com/rileydnorris/shouldiplay",
+      "language": "",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "BaranDev/videogames-mcp-server",
+      "url": "https://github.com/BaranDev/videogames-mcp-server",
+      "language": "",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "rawg-api-js / rawg-python SDKs",
+      "url": "https://www.npmjs.com/package/rawg-api-js",
+      "language": "",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    }
+  ],
+  "gaps": [],
+  "patterns": [],
+  "recommendation": "",
+  "researched_at": "0001-01-01T00:00:00Z",
+  "novel_features": [
+    {
+      "name": "",
+      "command": "similar",
+      "description": "Games like \u003ctitle\u003e: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carries its tier and a reason.",
+      "rationale": ""
+    },
+    {
+      "name": "",
+      "command": "retention",
+      "description": "Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY).",
+      "rationale": ""
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "",
+      "command": "similar",
+      "description": "Games like \u003ctitle\u003e: the seed's own studio first, then its defining gameplay tag (roguelite, metroidvania) found by tag-neighborhood co-occurrence, then a confidence-floored genre join. Every row carries its tier and a reason.",
+      "rationale": ""
+    },
+    {
+      "name": "",
+      "command": "retention",
+      "description": "Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY).",
+      "rationale": ""
+    }
+  ],
+  "auth": {
+    "canonical_env_var": "RAWG_API_KEY"
+  },
+  "narrative": {
+    "headline": "Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents.",
+    "quickstart": [
+      {
+        "command": "game-goat-pp-cli auth set-token"
+      },
+      {
+        "command": "game-goat-pp-cli games search \"hollow knight\" --json"
+      },
+      {
+        "command": "game-goat-pp-cli ratings \"hollow knight\" --json"
+      },
+      {
+        "command": "game-goat-pp-cli similar \"hollow knight\" --json"
+      }
+    ],
+    "recipes": [
+      {
+        "title": "Games like one you loved",
+        "command": "game-goat-pp-cli similar \"Megabonk\" --json --select results.name,results.tier,results.reason"
+      },
+      {
+        "title": "Play a franchise in order",
+        "command": "game-goat-pp-cli series \"zelda\" --json"
+      },
+      {
+        "title": "Pin a remake when titles collide",
+        "command": "game-goat-pp-cli ratings \"resident evil 4\" --year 2023 --json"
+      },
+      {
+        "title": "Will people actually finish it?",
+        "command": "game-goat-pp-cli retention \"elden ring\" --json"
+      }
+    ]
+  }
+}

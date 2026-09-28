@@ -17,8 +17,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"game-goat-pp-cli/internal/learn"
-	"game-goat-pp-cli/internal/store"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 )
 
 // deriveDBPath allocates a fresh candidate-store path per test.

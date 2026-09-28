@@ -14,11 +14,11 @@ import (
 	"sync"
 	"testing"
 
-	"game-goat-pp-cli/internal/cliutil"
-	"game-goat-pp-cli/internal/cliutil/testenv"
-	"game-goat-pp-cli/internal/learn"
-	"game-goat-pp-cli/internal/learn/entities"
-	"game-goat-pp-cli/internal/store"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil/testenv"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn/entities"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 )
 
 func unmarshalAgentResults(t *testing.T, stdout string, out any) {

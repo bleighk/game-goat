@@ -12,9 +12,9 @@ import (
 	"os"
 	"strings"
 
-	"game-goat-pp-cli/internal/cli"
-	mcptools "game-goat-pp-cli/internal/mcp"
 	"github.com/mark3labs/mcp-go/server"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cli"
+	mcptools "github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/mcp"
 )
 
 // Transport selection order: --transport flag, then PP_MCP_TRANSPORT env,

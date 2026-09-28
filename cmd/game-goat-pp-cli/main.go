@@ -6,7 +6,7 @@ package main
 import (
 	"os"
 
-	"game-goat-pp-cli/internal/cli"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cli"
 )
 
 func main() {

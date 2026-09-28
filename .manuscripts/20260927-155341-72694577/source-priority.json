@@ -1,0 +1,25 @@
+{
+  "sources": [
+    "rawg",
+    "steam-web-steamspy"
+  ],
+  "confirmed_at": "2026-09-27T05:53:41Z",
+  "raw_user_phrasing": "## Sources (priority order) 1. RAWG (api.rawg.io) - the spine. 2. CheapShark (cheapshark.com) - keyless. 3. Steam Web / SteamSpy - keyless. 4. HowLongToBeat - no official API. 5. OpenCritic - optional (free key)",
+  "auth_scoping": {
+    "decision": "all-sources-free",
+    "detail": "RAWG free API key (RAWG_API_KEY env var); Steam store endpoints keyless. No paid sources; no gating tradeoff."
+  },
+  "scope_correction": {
+    "confirmed_at": "2026-09-27T06:15:27Z",
+    "kept": [
+      "rawg (spine: search, detail, discover, suggested/similar, game-series, added_by_status, genres/tags/platforms/stores/developers/creators/lists)",
+      "steam-web-steamspy (keyless appdetails + appreviews: review-score summary in ratings only)"
+    ],
+    "dropped": [
+      "cheapshark (deal/price scope excluded by course correction; belongs in a post-publish amend)",
+      "howlongtobeat (no official API; playtime covered by RAWG per-game playtime field)",
+      "opencritic (no distinct value vs RAWG metacritic field)"
+    ]
+  },
+  "priority_check": "No inversion: rawg (primary) owns 27/27 absorbed feature surfaces and every transcendence feature spine; steam-web enriches only the ratings column."
+}

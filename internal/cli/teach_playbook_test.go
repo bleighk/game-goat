@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"game-goat-pp-cli/internal/store"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 )
 
 // writePlaybookFile is a test helper that drops a fixture file at the

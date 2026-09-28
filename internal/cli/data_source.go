@@ -19,8 +19,8 @@ import (
 	"strings"
 	"time"
 
-	"game-goat-pp-cli/internal/client"
-	"game-goat-pp-cli/internal/store"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/client"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 )
 
 const networkFallbackReason = "api_unreachable"

@@ -17,10 +17,10 @@ import (
 	"testing"
 	"time"
 
-	"game-goat-pp-cli/internal/cli"
-	"game-goat-pp-cli/internal/cliutil"
-	"game-goat-pp-cli/internal/cliutil/testenv"
-	"game-goat-pp-cli/internal/learn"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cli"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil/testenv"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn"
 )
 
 // withJournalHome isolates a test in a temp HOME with every journal

@@ -11,7 +11,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - -s -w -X game-goat-pp-cli/internal/cli.version={{ .Version }}
+      - -s -w -X github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cli.version={{ .Version }}
     targets:
       - darwin_amd64
       - darwin_arm64
@@ -48,7 +48,7 @@ brews:
     repository:
       owner: bleighk
       name: homebrew-tap
-    homepage: "https://github.com/bleighk/game-goat-pp-cli"
+    homepage: "https://github.com/mvanhorn/printing-press-library"
     description: "Pick tonight's game and shrink the backlog - RAWG discovery plus a local decision-debt ledger that tells you what you will actually finish."
     install: |
       bin.install "game-goat-pp-cli"

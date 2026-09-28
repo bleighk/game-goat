@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
-	"game-goat-pp-cli/internal/mcp/bound"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/mcp/bound"
 )
 
 func boundedToolResultError(message string) *mcplib.CallToolResult {

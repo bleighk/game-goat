@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"game-goat-pp-cli/internal/cliutil"
-	"game-goat-pp-cli/internal/config"
-	"game-goat-pp-cli/internal/platform"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/config"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/platform"
 )
 
 func TestPlatformRateLimitRetriesSafeRequestAndRecordsMetadata(t *testing.T) {

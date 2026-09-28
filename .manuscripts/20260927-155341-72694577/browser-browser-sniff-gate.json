@@ -1,0 +1,35 @@
+{
+  "run_id": "20260927-155341-72694577",
+  "sources": [
+    {
+      "source_name": "rawg",
+      "decision": "skip-silent",
+      "reason": "spec-complete: official OpenAPI at api.rawg.io/docs/?format=openapi covers games search/get, suggested, similar, genres, tags, platforms, stores, developers, lists, creators, screenshots, movies, and more; no gap signal",
+      "asked_at": "2026-09-27T06:08:15Z"
+    },
+    {
+      "source_name": "steam-web-steamspy",
+      "decision": "declined",
+      "reason": "user scoped Steam to keyless review-score enrichment only (OMDb-equivalent); documented appreviews/appdetails contract live-probed with 200s",
+      "asked_at": "2026-09-27T06:08:15Z"
+    },
+    {
+      "source_name": "cheapshark",
+      "decision": "declined",
+      "reason": "user dropped source in course correction: game-goat is a movie-goat-style discovery/recommendation CLI, not a deal-hunter; revisit via post-publish amend",
+      "asked_at": "2026-09-27T06:08:15Z"
+    },
+    {
+      "source_name": "howlongtobeat",
+      "decision": "declined",
+      "reason": "user dropped source in course correction: no beat-time data in first print; revisit via post-publish amend",
+      "asked_at": "2026-09-27T06:08:15Z"
+    },
+    {
+      "source_name": "opencritic",
+      "decision": "declined",
+      "reason": "user dropped source in course correction; API retired since 2023 with no reachable surface",
+      "asked_at": "2026-09-27T06:08:15Z"
+    }
+  ]
+}

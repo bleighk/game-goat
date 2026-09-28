@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"game-goat-pp-cli/internal/client"
-	"game-goat-pp-cli/internal/config"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/client"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/config"
 	"github.com/spf13/cobra"
 )
 

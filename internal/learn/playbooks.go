@@ -13,7 +13,7 @@ import (
 	"sort"
 	"strings"
 
-	"game-goat-pp-cli/internal/learn/entities"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn/entities"
 )
 
 // EntityResolver looks up a token in entity_lookups to find its

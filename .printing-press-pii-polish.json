@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-09-27T13:56:22.175002096Z",
+  "cli_dir": "\u003ccli-dir\u003e/game-goat",
+  "findings": [
+    {
+      "kind": "email",
+      "file": "SKILL.md",
+      "line": 50,
+      "column": 73,
+      "matched_span": "api@rawg.io",
+      "status": "accepted",
+      "category": "api_provider_data",
+      "evidence_context": "SKILL.md 'Terms of Use' attribution section, verbatim copy of RAWG's published API terms (rawg.io/apidocs): 'If your project is larger than that, email us at api@rawg.io for commercial terms.' Vendor's own public support address quoted in required attribution, not customer PII."
+    },
+    {
+      "kind": "email",
+      "file": "SKILL.md",
+      "line": 50,
+      "column": 93,
+      "matched_span": "api@rawg.io",
+      "status": "accepted",
+      "category": "api_provider_data",
+      "evidence_context": "SKILL.md 'Terms of Use' attribution section, verbatim copy of RAWG's published API terms (rawg.io/apidocs): 'If your project is larger than that, email us at api@rawg.io for commercial terms.' Vendor's own public support address quoted in required attribution, not customer PII."
+    },
+    {
+      "kind": "email",
+      "file": "SKILL.md",
+      "line": 53,
+      "column": 63,
+      "matched_span": "api@rawg.io",
+      "status": "accepted",
+      "category": "api_provider_data",
+      "evidence_context": "SKILL.md 'Terms of Use' attribution section, verbatim copy of RAWG's published API terms (rawg.io/apidocs): 'Drop us a line at api@rawg.io if you are in doubt, and we will talk it through.' Vendor's own public support address quoted in required attribution, not customer PII."
+    },
+    {
+      "kind": "email",
+      "file": "SKILL.md",
+      "line": 53,
+      "column": 83,
+      "matched_span": "api@rawg.io",
+      "status": "accepted",
+      "category": "api_provider_data",
+      "evidence_context": "SKILL.md 'Terms of Use' attribution section, verbatim copy of RAWG's published API terms (rawg.io/apidocs): 'Drop us a line at api@rawg.io if you are in doubt, and we will talk it through.' Vendor's own public support address quoted in required attribution, not customer PII."
+    }
+  ],
+  "findings_count_before": 2
+}

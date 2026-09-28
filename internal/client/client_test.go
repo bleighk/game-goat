@@ -16,8 +16,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"game-goat-pp-cli/internal/config"
-	"game-goat-pp-cli/internal/platform"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/config"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/platform"
 )
 
 func TestTruncateBody(t *testing.T) {

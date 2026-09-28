@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"game-goat-pp-cli/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
 )
 
 // Retry policy bounds: at most 1 retry per HTTP call, only on 429/5xx;

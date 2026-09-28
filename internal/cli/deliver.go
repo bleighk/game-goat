@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"game-goat-pp-cli/internal/client"
-	"game-goat-pp-cli/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/client"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
 )
 
 // DeliverSink describes where command output should be routed when

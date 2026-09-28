@@ -20,7 +20,7 @@ import (
 	"strings"
 	"testing"
 
-	"game-goat-pp-cli/internal/cliutil/testenv"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil/testenv"
 )
 
 // credsSampleReadPermsToken is an exposed on-disk token value written to the

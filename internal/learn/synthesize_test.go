@@ -20,8 +20,8 @@ import (
 	"strings"
 	"testing"
 
-	"game-goat-pp-cli/internal/learn"
-	"game-goat-pp-cli/internal/store"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 )
 
 // synthesisFamily is the query family every scenario teaches under.

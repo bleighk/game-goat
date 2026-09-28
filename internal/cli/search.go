@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"game-goat-pp-cli/internal/store"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 	"github.com/spf13/cobra"
 )
 

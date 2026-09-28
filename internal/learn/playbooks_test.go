@@ -12,7 +12,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"game-goat-pp-cli/internal/learn/entities"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn/entities"
 )
 
 // stubResolver is a test-only EntityResolver backed by an in-memory

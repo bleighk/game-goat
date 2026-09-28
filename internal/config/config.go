@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"game-goat-pp-cli/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
 	"github.com/pelletier/go-toml/v2"
 )
 
@@ -40,6 +40,14 @@ type Config struct {
 	envOverrides     map[string]bool `toml:"-"`
 	fileConfig       *Config         `toml:"-"`
 	RawgApiKey       string          `toml:"api_key"`
+	// PATCH(amend-2026-09-28: carry the ITAD key so RAWG saves/logout preserve it)
+	ITADApiKey string `toml:"itad_api_key"`
+	// PATCH(amend-2026-09-28: remember which credentials file this config reads)
+	// credsPath is the credentials file resolved at Load: an explicit --config
+	// keeps credentials beside the config file, the default home uses the
+	// default data dir. Credential writes/removals target it so a selected
+	// home never strands a key in another home. Unexported: never persisted.
+	credsPath string `toml:"-"`
 }
 
 func Load(configPath string) (*Config, error) {
@@ -119,6 +127,18 @@ func Load(configPath string) (*Config, error) {
 		}
 	}
 	cfg.Path = path
+	// Capture the credentials file this load reads so saves/removals target the
+	// same one. An explicit --config colocates credentials under its data dir.
+	if explicitConfigFile {
+		if p, perr := cliutil.CredentialsFilePathForConfig(path); perr == nil {
+			cfg.credsPath = p
+		}
+	}
+	if cfg.credsPath == "" {
+		if p, perr := cliutil.CredentialsFilePath(); perr == nil {
+			cfg.credsPath = p
+		}
+	}
 	if cfg.AgentcookieManagedByExternalStore() {
 		cfg.markAgentcookieManaged()
 	} else {
@@ -159,6 +179,18 @@ func Load(configPath string) (*Config, error) {
 		}
 	}
 
+	// PATCH(amend-2026-09-28: read the ITAD key from this config's own home)
+	// Never take it from a cross-home credential fallback: persisting it would
+	// copy the default home's ITAD key into a selected config home. Read it
+	// from the same credentials file this config writes to instead.
+	// The credentials file is authoritative for the ITAD key: auth set-token
+	// --provider itad writes there, so a config-file itad_api_key must not
+	// shadow a rotated key. The ITAD_API_KEY env override is applied below and
+	// still wins.
+	if key, ok := cliutil.LoadITADKeyQuiet(cfg.credsPath); ok {
+		cfg.ITADApiKey = key
+	}
+
 	cfg.snapshotFileConfig()
 
 	// Env var overrides
@@ -167,6 +199,14 @@ func Load(configPath string) (*Config, error) {
 		cfg.markEnvOverride("RawgApiKey")
 		cfg.AuthSource = "env:RAWG_API_KEY"
 		cfg.CredentialSource = "env:RAWG_API_KEY"
+	}
+	// PATCH(amend-2026-09-28: load the sibling ITAD credential)
+	// Deliberately does not touch AuthSource/AuthHeader: the ITAD key is a
+	// separate provider's credential and must not make the RAWG auth look
+	// configured.
+	if v := cliutil.EnvOverride("ITAD_API_KEY"); v != "" {
+		cfg.ITADApiKey = v
+		cfg.markEnvOverride("ITADApiKey")
 	}
 	// Label config-file-derived credentials so doctor can distinguish
 	// "credentials persisted on disk" from "no credentials at all" — without
@@ -410,6 +450,7 @@ func (c *Config) credentials() *cliutil.Credentials {
 		ClientID:      c.ClientID,
 		ClientSecret:  c.ClientSecret,
 		RawgApiKey:    c.RawgApiKey,
+		ITADApiKey:    c.ITADApiKey,
 	}
 }
 
@@ -440,13 +481,29 @@ func (c *Config) applyCredentials(creds *cliutil.Credentials) {
 	}
 }
 
+// CredentialsFilePath returns the credentials file this config was loaded from
+// (or would write to): the explicit --config sibling data dir when an explicit
+// config was selected, else the default data dir. Credential writes and
+// removals must target it so a --config-selected home never writes into, or
+// strands a key in, another home.
+func (c *Config) CredentialsFilePath() (string, error) {
+	if c != nil && c.credsPath != "" {
+		return c.credsPath, nil
+	}
+	return cliutil.CredentialsFilePath()
+}
+
 func (c *Config) saveCredentialsFirst() error {
 	if c.AgentcookieManagedByExternalStore() {
 		c.markAgentcookieManaged()
 		return nil
 	}
 	persisted := c.configForSave()
-	if err := cliutil.SaveCredentials(persisted.credentials()); err != nil {
+	credsPath, err := c.CredentialsFilePath()
+	if err != nil {
+		return err
+	}
+	if err := cliutil.SaveCredentialsAt(credsPath, persisted.credentials()); err != nil {
 		return err
 	}
 	c.CredentialSource = "credentials file"
@@ -464,7 +521,7 @@ type credentialsSnapshot struct {
 // Credentials and config are separate files. Publishing tokens first would
 // otherwise leave a new credentials.toml if the config write fails.
 func (c *Config) saveCredentialsThenConfig() error {
-	credsPath, err := cliutil.CredentialsFilePath()
+	credsPath, err := c.CredentialsFilePath()
 	if err != nil {
 		return err
 	}
@@ -648,7 +705,24 @@ func (c *Config) ClearTokens() error {
 		// back; returning early would leave the secrets on disk.
 		return c.save()
 	}
-	if err := cliutil.RemoveCredentials(); err != nil {
+	// PATCH(amend-2026-09-28: logout keeps a sibling ITAD credential and the
+	// selected home) — resolve the credentials file this config read from so
+	// the clear lands in the same home; removing/writing the default file would
+	// strand the selected home's key and overwrite the default home's.
+	credsPath, err := c.CredentialsFilePath()
+	if err != nil {
+		return err
+	}
+	// Removing the shared file would silently drop the IsThereAnyDeal key when
+	// only the RAWG credential is being cleared, so rewrite it instead.
+	if persisted := c.configForSave(); persisted.ITADApiKey != "" {
+		if err := cliutil.SaveCredentialsAt(credsPath, persisted.credentials()); err != nil {
+			return err
+		}
+		c.CredentialSource = "credentials file"
+		return c.save()
+	}
+	if err := cliutil.RemoveCredentialsAt(credsPath); err != nil {
 		return err
 	}
 	return c.save()
@@ -692,6 +766,10 @@ func (c *Config) configForSave() Config {
 		if c.envOverrides["RawgApiKey"] {
 			out.RawgApiKey = c.fileConfig.RawgApiKey
 		}
+		// An env-derived ITAD key must not be persisted to disk by a save.
+		if c.envOverrides["ITADApiKey"] {
+			out.ITADApiKey = c.fileConfig.ITADApiKey
+		}
 	}
 	out.envOverrides = nil
 	out.fileConfig = nil
@@ -717,6 +795,8 @@ func (c *Config) updateFileConfigField(field string) {
 		c.fileConfig.ClientSecret = c.ClientSecret
 	case "RawgApiKey":
 		c.fileConfig.RawgApiKey = c.RawgApiKey
+	case "ITADApiKey":
+		c.fileConfig.ITADApiKey = c.ITADApiKey
 	}
 }
 

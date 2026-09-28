@@ -18,7 +18,7 @@
   "spec_checksum": "sha256:ad4e705ed809cea34ae4ee534815e064cedcb14450c26582f8fee0e6bd606e94",
   "run_id": "20260927-155341-72694577",
   "category": "media-and-entertainment",
-  "description": "Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents.",
+  "description": "Look up any game and find what to play next - RAWG search, ratings, franchise order, tag-matched recommendations with remake-aware title resolution, plus IsThereAnyDeal historical price tracking and currency-localised storefront prices, built for agents.",
   "mcp_binary": "game-goat-pp-mcp",
   "mcp_tool_count": 30,
   "mcp_ready": "full",
@@ -66,6 +66,16 @@
       "name": "",
       "command": "moods list",
       "description": "List the curated mood names that tonight --mood accepts, with their genre/tag clusters."
+    },
+    {
+      "name": "",
+      "command": "price-history",
+      "description": "Historical price tracking for one game: all-time / 1-year / 3-month lows, the current best storefront price, a dated change log, and a buy-now verdict, localised to a --country currency (needs ITAD_API_KEY)."
+    },
+    {
+      "name": "",
+      "command": "prices",
+      "description": "Current prices across storefronts, cheapest first, with a --deals-only filter and the all-time low for context, localised to a --country currency (needs ITAD_API_KEY)."
     }
   ],
   "verify": {

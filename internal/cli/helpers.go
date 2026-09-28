@@ -25,10 +25,10 @@ import (
 	"time"
 	"unicode"
 
-	"game-goat-pp-cli/internal/client"
-	"game-goat-pp-cli/internal/cliutil"
-	"game-goat-pp-cli/internal/config"
-	"game-goat-pp-cli/internal/platform"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/client"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/config"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/platform"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

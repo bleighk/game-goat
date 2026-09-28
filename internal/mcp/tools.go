@@ -16,17 +16,17 @@ import (
 	"strings"
 	"time"
 
-	"game-goat-pp-cli/internal/cli"
-	"game-goat-pp-cli/internal/client"
-	"game-goat-pp-cli/internal/cliutil"
-	"game-goat-pp-cli/internal/config"
-	"game-goat-pp-cli/internal/learn"
-	"game-goat-pp-cli/internal/mcp/bound"
-	"game-goat-pp-cli/internal/mcp/cobratree"
-	"game-goat-pp-cli/internal/platform"
-	"game-goat-pp-cli/internal/store"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cli"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/client"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/config"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/mcp/bound"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/mcp/cobratree"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/platform"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 	"modernc.org/sqlite"
 	sqlite3 "modernc.org/sqlite/lib"
 )
@@ -1250,7 +1250,7 @@ func handleContextResult(s *server.MCPServer, _ context.Context, _ mcplib.CallTo
 	}
 	ctx := map[string]any{
 		"api":         "game-goat",
-		"description": "Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents.",
+		"description": "Look up any game and find what to play next - RAWG search, ratings, franchise order, tag-matched recommendations with remake-aware title resolution, plus IsThereAnyDeal historical price tracking and currency-localised storefront prices, built for agents.",
 		"archetype":   "generic",
 		"tool_count":  len(s.ListTools()),
 		"paths":       paths,

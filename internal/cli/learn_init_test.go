@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"game-goat-pp-cli/internal/learn"
-	"game-goat-pp-cli/internal/store"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 )
 
 // TestNewLearnConfig_BuildsConfig pins that the emitted init shim

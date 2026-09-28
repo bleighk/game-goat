@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"game-goat-pp-cli/internal/store"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 )
 
 func TestSyncSingleObject_PreservesLargeIntegerResourceIDs(t *testing.T) {

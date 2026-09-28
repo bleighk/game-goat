@@ -1,0 +1,19 @@
+{
+  "schema_version": 2,
+  "id": "game-goat-series-bare-id-anchor",
+  "applied_at": "2026-09-28",
+  "base_run_id": "20260927-155341-72694577",
+  "base_printing_press_version": "4.32.5",
+  "summary": "fix(game-goat): series loads anchor detail for a bare RAWG id",
+  "reason": "PR #2057 review: series with a bare RAWG id returned an ID-only anchor with no name or release date, so the requested game displayed blank and sorted last in the play order (and could drop out under a low --limit).",
+  "files": [
+    "internal/cli/series.go",
+    "internal/cli/series_anchor_test.go"
+  ],
+  "call_sites": [
+    "PATCH(amend-2026-09-28: series fetches details for a bare-id anchor)",
+    "func seriesAnchor("
+  ],
+  "validated_outcome": "go build/vet/test pass; publish validate PASS; dogfood 219/219; verify 67/67",
+  "findings_addressed": ["review-5332110697-series-anchor"]
+}

@@ -3,7 +3,7 @@
   "name": "game-goat-pp-mcp",
   "display_name": "Rawg Video Games",
   "version": "4.32.5",
-  "description": "Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents.",
+  "description": "Look up any game and find what to play next - RAWG search, ratings, franchise order, tag-matched recommendations with remake-aware title resolution, plus IsThereAnyDeal historical price tracking and currency-localised storefront prices, built for agents.",
   "author": {
     "name": "CLI Printing Press"
   },
@@ -15,7 +15,8 @@
       "command": "${__dirname}/bin/game-goat-pp-mcp",
       "args": [],
       "env": {
-        "RAWG_API_KEY": "${user_config.rawg_api_key}"
+        "RAWG_API_KEY": "${user_config.rawg_api_key}",
+        "ITAD_API_KEY": "${user_config.itad_api_key}"
       }
     }
   },
@@ -26,6 +27,13 @@
       "description": "Sets RAWG_API_KEY for the Rawg Video Games MCP server. Get a credential from https://rawg.io/apidocs.",
       "sensitive": true,
       "required": true
+    },
+    "itad_api_key": {
+      "type": "string",
+      "title": "ITAD_API_KEY (optional)",
+      "description": "Optional. Enables the prices and price-history tools (IsThereAnyDeal) by setting ITAD_API_KEY. Get a free key from https://isthereanydeal.com/apps/. Leave blank to use the RAWG-only commands.",
+      "sensitive": true,
+      "required": false
     }
   },
   "compatibility": {

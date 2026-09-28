@@ -1,7 +1,7 @@
 {
   "api_name": "game-goat",
   "base_url": "https://api.rawg.io/api",
-  "description": "Look up any game and find what to play next - RAWG search, ratings, franchise order, and tag-matched recommendations with remake-aware title resolution, built for agents.",
+  "description": "Look up any game and find what to play next - RAWG search, ratings, franchise order, tag-matched recommendations with remake-aware title resolution, plus IsThereAnyDeal historical price tracking and currency-localised storefront prices, built for agents.",
   "mcp_ready": "full",
   "http_transport": "standard",
   "auth": {
@@ -775,6 +775,16 @@
       "name": "",
       "command": "retention",
       "description": "Community completion and drop verdict for one game from RAWG added_by_status counts (needs RAWG_API_KEY)."
+    },
+    {
+      "name": "",
+      "command": "prices",
+      "description": "Current prices across storefronts, cheapest first, with a --deals-only filter and the all-time low for context, localised to a --country currency (needs ITAD_API_KEY)."
+    },
+    {
+      "name": "",
+      "command": "price-history",
+      "description": "Historical price tracking for one game: all-time / 1-year / 3-month lows, the current best storefront price, a dated change log, and a buy-now verdict, localised to a --country currency (needs ITAD_API_KEY)."
     }
   ]
 }

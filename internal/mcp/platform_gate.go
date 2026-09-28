@@ -6,10 +6,10 @@ package mcp
 import (
 	"context"
 
-	"game-goat-pp-cli/internal/cli"
-	"game-goat-pp-cli/internal/platform"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cli"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/platform"
 )
 
 const mcpTenantGateOwnerKey = "pp:tenant-gate"

@@ -23,9 +23,9 @@ import (
 	"os"
 	"sync"
 
-	"game-goat-pp-cli/internal/learn/entities"
-	"game-goat-pp-cli/internal/learn/lookups"
-	"game-goat-pp-cli/internal/store"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn/entities"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn/lookups"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 )
 
 // newLearnConfig returns the per-CLI entity extractor Config the

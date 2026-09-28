@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"game-goat-pp-cli/internal/learn/entities"
-	"game-goat-pp-cli/internal/learn/lookups"
-	"game-goat-pp-cli/internal/learn/patterns"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn/entities"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn/lookups"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn/patterns"
 )
 
 // Default thresholds. Keep in sync with the documented contract in

@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"game-goat-pp-cli/internal/platform"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/platform"
 	"github.com/spf13/cobra"
 )
 

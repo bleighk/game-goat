@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"game-goat-pp-cli/internal/client"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/client"
 
 	"github.com/spf13/cobra"
 )
@@ -105,6 +105,22 @@ func fetchSeriesGames(ctx context.Context, c *client.Client, gameID int, title s
 	return nil, "game-series", fmt.Sprintf("no game-series or parent-games data for %q; find related games with 'game-goat-pp-cli games search %s'", title, title), nil
 }
 
+// seriesAnchor loads a resolved anchor's detail when the resolver returned an
+// id-only record (a bare RAWG id), so the anchor carries a name and release
+// date. A title-resolved anchor already has its fields and passes through
+// without a network call.
+func seriesAnchor(ctx context.Context, c *client.Client, match rawgGame) (rawgGame, error) {
+	if match.Name != "" {
+		return match, nil
+	}
+	detail, err := fetchGameByID(ctx, c, match.ID)
+	if err != nil {
+		return match, err
+	}
+	detail.ID = match.ID
+	return detail, nil
+}
+
 func newSeriesCmd(flags *rootFlags) *cobra.Command {
 	var year string
 	var limit int
@@ -155,6 +171,15 @@ get.`,
 			match, candidates, err := resolveTitleForMultiSource(ctx, cmd, c, flags, title, year)
 			if err != nil {
 				return err
+			}
+			// A bare RAWG id resolves to an ID-only record. Load its detail so
+			// the anchor row carries a name and release date and sorts into the
+			// correct play-order position instead of appearing blank and last.
+			// PATCH(amend-2026-09-28: series fetches details for a bare-id anchor)
+			if anchor, aerr := seriesAnchor(ctx, c, match); aerr == nil {
+				match = anchor
+			} else {
+				fmt.Fprintf(cmd.ErrOrStderr(), "warning: could not load details for RAWG id %d: %v\n", match.ID, aerr)
 			}
 			games, via, note, err := fetchSeriesGames(ctx, c, match.ID, title)
 			if err != nil {

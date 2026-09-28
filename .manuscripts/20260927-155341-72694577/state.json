@@ -1,0 +1,14 @@
+{
+  "api_name": "game-goat",
+  "category": "media-and-entertainment",
+  "output_dir": "/home/brad/printing-press/.runstate/game-goat-ec51bf9c/runs/20260927-155341-72694577/working/game-goat-pp-cli",
+  "phase_receipt_log": "/home/brad/printing-press/.runstate/game-goat-ec51bf9c/runs/20260927-155341-72694577/pipeline/phase-receipts.jsonl",
+  "phases": {},
+  "printing_press_bin": "/home/brad/go/bin/cli-printing-press",
+  "published_dir": "/home/brad/printing-press/library/game-goat",
+  "run_id": "20260927-155341-72694577",
+  "scope": "game-goat-ec51bf9c",
+  "started_at": "0001-01-01T00:00:00Z",
+  "version": 0,
+  "working_dir": "/home/brad/printing-press/library/game-goat"
+}

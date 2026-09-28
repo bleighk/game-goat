@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"os"
 
-	"game-goat-pp-cli/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
 )
 
 // verifyPrivatePerms reports an unsafe owner or DACL on stderr and allows the

@@ -31,9 +31,9 @@ import (
 	"strings"
 	"sync"
 
-	"game-goat-pp-cli/internal/cli/playbooks"
-	"game-goat-pp-cli/internal/learn"
-	"game-goat-pp-cli/internal/store"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cli/playbooks"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/learn"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/store"
 )
 
 // playbookSeedSentinelFamily is the synthetic query_family used to

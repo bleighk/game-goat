@@ -5,12 +5,14 @@ package cli
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 
-	"game-goat-pp-cli/internal/cliutil"
-	"game-goat-pp-cli/internal/config"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -92,6 +94,24 @@ func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
 				return configErr(err)
 			}
 
+			// PATCH(amend-2026-09-28: auth status reports the ITAD credential)
+			itadEnv := strings.TrimSpace(os.Getenv("ITAD_API_KEY")) != ""
+			var itadStored bool
+			var itadErr error
+			if itadPath, itadPathErr := cfg.CredentialsFilePath(); itadPathErr == nil {
+				_, itadStored, itadErr = cliutil.LoadITADCredentialAt(itadPath)
+			} else {
+				itadErr = itadPathErr
+			}
+			itadAuthed := itadEnv || (itadErr == nil && itadStored)
+			itadSource := ""
+			switch {
+			case itadEnv:
+				itadSource = "env:ITAD_API_KEY"
+			case itadErr == nil && itadStored:
+				itadSource = "credentials file"
+			}
+
 			w := cmd.OutOrStdout()
 			header := cfg.AuthHeader()
 			authed := header != ""
@@ -102,10 +122,14 @@ func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
 			// so exit code carries the auth-failure signal.
 			if flags.asJSON {
 				out := map[string]any{
-					"authenticated": authed,
-					"verified":      false,
-					"source":        cfg.AuthSource,
-					"config":        cfg.Path,
+					"authenticated":      authed,
+					"verified":           false,
+					"source":             cfg.AuthSource,
+					"config":             cfg.Path,
+					"itad_authenticated": itadAuthed,
+				}
+				if itadAuthed {
+					out["itad_source"] = itadSource
 				}
 				if credentialRefused {
 					out["credential_refused"] = true
@@ -141,6 +165,7 @@ func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
 				fmt.Fprintln(w, "Set your token:")
 				fmt.Fprintln(w, "  export RAWG_API_KEY=\"your-token-here\"")
 				fmt.Fprintf(w, "  echo \"$TOKEN\" | game-goat-pp-cli auth set-token\n")
+				printITADAuthLine(w, itadAuthed, itadSource)
 				return authErr(fmt.Errorf("no credentials configured"))
 			}
 
@@ -153,23 +178,38 @@ func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
 					fmt.Fprintf(w, "  %s\n", "Set your API key with: export RAWG_API_KEY=\"your-token-here\"")
 				}
 			}
+			printITADAuthLine(w, itadAuthed, itadSource)
 			return nil
 		},
 	}
 }
 
 func newAuthSetTokenCmd(flags *rootFlags) *cobra.Command {
-	return &cobra.Command{
+	// PATCH(amend-2026-09-28: auth set-token gains --provider rawg|itad)
+	var provider string
+	cmd := &cobra.Command{
 		Use:   "set-token",
 		Short: "Save an API token to the credentials file",
 		Long: "Save an API token to the credentials file.\n\n" +
-			"The token is read from stdin so it never appears in process arguments or shell history.",
-		Example: "  echo \"$TOKEN\" | game-goat-pp-cli auth set-token\n  game-goat-pp-cli auth set-token < token-file",
-		Args:    cobra.NoArgs,
+			"The token is read from stdin so it never appears in process arguments or shell history.\n\n" +
+			"Use --provider to choose the credential: \"rawg\" (default, the primary API key) or \"itad\" (IsThereAnyDeal, needed by prices and price-history).",
+		Example: "  echo \"$TOKEN\" | game-goat-pp-cli auth set-token\n" +
+			"  echo \"$ITAD_API_KEY\" | game-goat-pp-cli auth set-token --provider itad\n" +
+			"  game-goat-pp-cli auth set-token < token-file",
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			token, err := readSecretFromStdin(cmd.InOrStdin())
 			if err != nil {
 				return authErr(err)
+			}
+
+			switch p := strings.ToLower(strings.TrimSpace(provider)); p {
+			case "", "rawg":
+				// fall through to the primary-key path below
+			case "itad", "isthereanydeal":
+				return saveITADToken(cmd, flags, token)
+			default:
+				return usageErr(fmt.Errorf("unknown --provider %q: use rawg or itad", p))
 			}
 
 			cfg, err := config.Load(flags.configPath)
@@ -208,11 +248,69 @@ func newAuthSetTokenCmd(flags *rootFlags) *cobra.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringVar(&provider, "provider", "rawg", "credential to store: rawg or itad")
+	return cmd
+}
+
+// saveITADToken stores the IsThereAnyDeal key beside the primary credential
+// in credentials.toml, inheriting the same 0600 permission guard.
+// PATCH(amend-2026-09-28: auth set-token --provider itad)
+func saveITADToken(cmd *cobra.Command, flags *rootFlags, token string) error {
+	configPath := ""
+	asJSON := false
+	if flags != nil {
+		configPath = flags.configPath
+		asJSON = flags.asJSON
+	}
+	// Resolve the credentials file through the same config the CLI loaded, so a
+	// GAME_GOAT_CONFIG or --config selection stores the key in that home rather
+	// than the default one.
+	cfg, err := config.Load(configPath)
+	if err != nil {
+		return configErr(err)
+	}
+	credsPath, err := cfg.CredentialsFilePath()
+	if err != nil {
+		return configErr(err)
+	}
+	if err := cliutil.SaveITADCredentialAt(credsPath, token); err != nil {
+		return configErr(fmt.Errorf("saving IsThereAnyDeal token: %w", err))
+	}
+	// Report the path we actually wrote, not the default home's path.
+	savePath := credsPath
+	if asJSON {
+		out := map[string]any{"saved": true, "provider": "itad"}
+		if savePath != "" {
+			out["credentials_path"] = savePath
+		}
+		return printJSONFiltered(cmd.OutOrStdout(), out, flags)
+	}
+	fmt.Fprintf(cmd.OutOrStdout(), "IsThereAnyDeal token saved to %s\n", savePath)
+	return nil
+}
+
+func itadCredentialSavePath(configPath string) string {
+	if strings.TrimSpace(configPath) != "" {
+		if p, err := cliutil.CredentialsFilePathForConfig(configPath); err == nil {
+			return p
+		}
+	}
+	if p, err := cliutil.CredentialsFilePath(); err == nil {
+		return p
+	}
+	return ""
 }
 
 func credentialSavePath(cfg *config.Config) string {
 	if cfg != nil && cfg.AgentcookieManagedByExternalStore() {
 		return cfg.Path
+	}
+	// Prefer the file this config actually reads/writes so an explicit --config
+	// home reports (and writes) its sibling credentials, not the default one.
+	if cfg != nil {
+		if path, err := cfg.CredentialsFilePath(); err == nil {
+			return path
+		}
 	}
 	if path, err := cliutil.CredentialsFilePath(); err == nil {
 		return path
@@ -224,7 +322,9 @@ func credentialSavePath(cfg *config.Config) string {
 }
 
 func newAuthLogoutCmd(flags *rootFlags) *cobra.Command {
-	return &cobra.Command{
+	// PATCH(amend-2026-09-28: logout clears the ITAD credential too)
+	var provider string
+	cmd := &cobra.Command{
 		Use:     "logout",
 		Short:   "Clear stored credentials",
 		Example: "  game-goat-pp-cli auth logout",
@@ -234,32 +334,79 @@ func newAuthLogoutCmd(flags *rootFlags) *cobra.Command {
 				return configErr(err)
 			}
 
-			if err := cfg.ClearTokens(); err != nil {
-				return configErr(fmt.Errorf("clearing tokens: %w", err))
+			which := strings.ToLower(strings.TrimSpace(provider))
+			// Clear the credentials file this config loaded from; using the
+			// default path would strand the selected home's key and can touch a
+			// different home entirely.
+			credsPath, perr := cfg.CredentialsFilePath()
+			if perr != nil {
+				return configErr(perr)
+			}
+			switch which {
+			case "", "all":
+				if err := cfg.ClearTokens(); err != nil {
+					return configErr(fmt.Errorf("clearing tokens: %w", err))
+				}
+				if err := cliutil.ClearITADCredentialAt(credsPath); err != nil {
+					return configErr(fmt.Errorf("clearing IsThereAnyDeal token: %w", err))
+				}
+			case "rawg":
+				if err := cfg.ClearTokens(); err != nil {
+					return configErr(fmt.Errorf("clearing tokens: %w", err))
+				}
+			case "itad", "isthereanydeal":
+				if err := cliutil.ClearITADCredentialAt(credsPath); err != nil {
+					return configErr(fmt.Errorf("clearing IsThereAnyDeal token: %w", err))
+				}
+			default:
+				return usageErr(fmt.Errorf("unknown --provider %q: use all, rawg, or itad", which))
 			}
 
 			// Identify which (if any) auth env var is still exported so the
 			// JSON envelope and the human prose can both surface it.
 			envStillSet := ""
-			if envStillSet == "" && os.Getenv("RAWG_API_KEY") != "" {
-				envStillSet = "RAWG_API_KEY"
+			for _, name := range []string{"RAWG_API_KEY", "ITAD_API_KEY"} {
+				if os.Getenv(name) == "" {
+					continue
+				}
+				if envStillSet == "" {
+					envStillSet = name
+				} else {
+					envStillSet += " and " + name
+				}
 			}
 
 			// JSON envelope: {cleared: true, note?: "<env_var> env var is still set"}.
 			if flags.asJSON {
-				out := map[string]any{"cleared": true}
+				out := map[string]any{"cleared": true, "provider": which}
 				if envStillSet != "" {
-					out["note"] = envStillSet + " env var is still set"
+					out["note"] = envStillSet + " env var(s) are still set"
 				}
 				return printJSONFiltered(cmd.OutOrStdout(), out, flags)
 			}
 
+			clearedMsg := "Logged out. Credentials cleared."
+			if which == "itad" || which == "isthereanydeal" {
+				clearedMsg = "IsThereAnyDeal credentials cleared."
+			}
 			if envStillSet != "" {
-				fmt.Fprintf(cmd.OutOrStdout(), "Config cleared. Note: %s env var is still set.\n", envStillSet)
+				fmt.Fprintf(cmd.OutOrStdout(), "Config cleared. Note: %s env var(s) are still set.\n", envStillSet)
 				return nil
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), "Logged out. Credentials cleared.")
+			fmt.Fprintln(cmd.OutOrStdout(), clearedMsg)
 			return nil
 		},
 	}
+	cmd.Flags().StringVar(&provider, "provider", "all", "credential to clear: all, rawg, or itad")
+	return cmd
+}
+
+// printITADAuthLine reports the optional IsThereAnyDeal credential separately
+// from the primary RAWG auth so its absence never masks a working CLI.
+func printITADAuthLine(w io.Writer, authed bool, source string) {
+	if authed {
+		fmt.Fprintf(w, "IsThereAnyDeal: configured (%s)\n", source)
+		return
+	}
+	fmt.Fprintln(w, "IsThereAnyDeal: not configured (optional; prices/price-history need ITAD_API_KEY)")
 }

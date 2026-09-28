@@ -13,9 +13,9 @@ import (
 	"strings"
 	"testing"
 
-	"game-goat-pp-cli/internal/cliutil"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil"
 
-	"game-goat-pp-cli/internal/cliutil/testenv"
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat/internal/cliutil/testenv"
 	"github.com/spf13/cobra"
 )
 

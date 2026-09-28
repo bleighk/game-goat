@@ -1,4 +1,4 @@
-module game-goat-pp-cli
+module github.com/mvanhorn/printing-press-library/library/media-and-entertainment/game-goat
 
 go 1.26.6
 
